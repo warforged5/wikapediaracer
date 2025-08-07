@@ -1,0 +1,351 @@
+import 'package:flutter/material.dart';
+import '../models/player.dart';
+import 'race_screen.dart';
+
+class QuickRaceSetupScreen extends StatefulWidget {
+  const QuickRaceSetupScreen({super.key});
+
+  @override
+  State<QuickRaceSetupScreen> createState() => _QuickRaceSetupScreenState();
+}
+
+class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
+  final List<TextEditingController> _playerControllers = [];
+  int _rounds = 3;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start with 2 default players
+    _playerControllers.add(TextEditingController(text: 'Player 1'));
+    _playerControllers.add(TextEditingController(text: 'Player 2'));
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _playerControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addPlayer() {
+    if (_playerControllers.length < 8) {
+      setState(() {
+        _playerControllers.add(
+          TextEditingController(text: 'Player ${_playerControllers.length + 1}'),
+        );
+      });
+    }
+  }
+
+  void _removePlayer(int index) {
+    if (_playerControllers.length > 2) {
+      setState(() {
+        _playerControllers[index].dispose();
+        _playerControllers.removeAt(index);
+      });
+    }
+  }
+
+  Future<void> _startRace() async {
+    final playerNames = _playerControllers
+        .map((c) => c.text.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet() // Remove duplicates
+        .toList();
+
+    if (playerNames.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least 2 unique players are required')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final players = playerNames.map((name) => Player(name: name)).toList();
+      
+      if (mounted) {
+        final result = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RaceScreen(
+              players: players,
+              rounds: _rounds,
+              groupId: null, // Quick race - no group
+            ),
+          ),
+        );
+        
+        if (result == true && mounted) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error starting race: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quick Race Setup'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Players Section
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Players',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _playerControllers.length < 8 ? _addPlayer : null,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Player'),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Customize player names or keep the defaults',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Player name fields
+                  ...List.generate(_playerControllers.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _playerControllers[index],
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                prefixIcon: const Icon(Icons.person),
+                                labelText: 'Player ${index + 1}',
+                                filled: true,
+                                fillColor: Theme.of(context).colorScheme.surface,
+                              ),
+                            ),
+                          ),
+                          if (_playerControllers.length > 2)
+                            IconButton(
+                              onPressed: () => _removePlayer(index),
+                              icon: Icon(
+                                Icons.remove_circle,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Rounds Section
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Number of Rounds',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Each round requires reaching a different Wikipedia page',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Round selector
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) {
+                      final rounds = index + 1;
+                      final isSelected = _rounds == rounds;
+                      
+                      return GestureDetector(
+                        onTap: () => setState(() => _rounds = rounds),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.surface,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: isSelected ? [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ] : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$rounds',
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Text(
+                      '$_rounds ${_rounds == 1 ? 'round' : 'rounds'} selected',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Start Race Button
+          SizedBox(
+            height: 56,
+            child: FilledButton.icon(
+              onPressed: _isLoading ? null : _startRace,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.play_arrow, size: 24),
+              label: Text(
+                _isLoading ? 'Starting Race...' : 'Start Race',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Info Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Quick races are not saved to your history. Create a group to track wins and losses.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
