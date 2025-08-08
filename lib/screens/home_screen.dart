@@ -49,16 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surfaceContainerLowest,
-            ],
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surface,
         child: SafeArea(
           child: isWeb ? _buildWebLayout(context) : _buildMobileLayout(context),
         ),
@@ -397,34 +388,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: isPrimary 
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color,
-                        color.withValues(alpha: 0.8),
-                      ],
-                    )
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Theme.of(context).colorScheme.surface,
-                        Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      ],
-                    ),
-              border: !isPrimary ? Border.all(
-                color: color.withValues(alpha: 0.2),
+              color: isPrimary ? color : Theme.of(context).colorScheme.surface,
+              border: Border.all(
+                color: isPrimary ? Colors.transparent : color.withValues(alpha: 0.3),
                 width: 1,
-              ) : null,
-              boxShadow: isPrimary ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ] : null,
+              ),
             ),
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -433,27 +401,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: isPrimary ? 72 : 64,
                   height: isPrimary ? 72 : 64,
                   decoration: BoxDecoration(
-                    gradient: isPrimary 
-                        ? LinearGradient(
-                            colors: [
-                              Colors.white.withValues(alpha: 0.3),
-                              Colors.white.withValues(alpha: 0.1),
-                            ],
-                          )
-                        : LinearGradient(
-                            colors: [
-                              color.withValues(alpha: 0.15),
-                              color.withValues(alpha: 0.08),
-                            ],
-                          ),
+                    color: isPrimary 
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: isPrimary ? [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ] : null,
                   ),
                   child: Icon(
                     icon,

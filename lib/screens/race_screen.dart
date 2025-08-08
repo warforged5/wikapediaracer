@@ -46,7 +46,7 @@ class _RaceScreenState extends State<RaceScreen> {
   
   final List<RaceRound> _completedRounds = [];
   final Map<String, int> _playerScores = {};
-  
+  final TextEditingController _customPageController = TextEditingController();
 
   @override
   void initState() {
@@ -65,6 +65,7 @@ class _RaceScreenState extends State<RaceScreen> {
   @override
   void dispose() {
     _raceTimer?.cancel();
+    _customPageController.dispose();
     super.dispose();
   }
 
@@ -662,99 +663,180 @@ class _RaceScreenState extends State<RaceScreen> {
     final isWeb = screenSize.width > 800;
     final isTablet = screenSize.width > 600;
     
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      padding: EdgeInsets.all(isWeb ? 24 : 16),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: isWeb ? 1400 : double.infinity),
-          child: Column(
-            children: [
-              // Clean header with instruction
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: _getPhaseColor().withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: _getPhaseColor().withValues(alpha: 0.2),
-                    width: 1,
-                  ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header Section - Fixed height
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(isWeb ? 24 : 16),
+              decoration: BoxDecoration(
+                color: _getPhaseColor(),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          _phase == RacePhase.selectingStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                          color: Colors.white,
+                          size: isWeb ? 32 : 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getPhaseTitle(),
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isWeb ? 24 : 20,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getPhaseSubtitle(),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: isWeb ? 16 : 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Content Section - Takes remaining space
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(isWeb ? 24 : 16),
                 child: Column(
                   children: [
-                    Container(
-                      width: isWeb ? 64 : 56,
-                      height: isWeb ? 64 : 56,
-                      decoration: BoxDecoration(
-                        color: _getPhaseColor(),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        _phase == RacePhase.selectingStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
-                        size: isWeb ? 32 : 28,
-                        color: Colors.white,
+                    // Custom Input Section
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: EdgeInsets.all(isWeb ? 20 : 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Enter Custom Page',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _customPageController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Wikipedia page title...',
+                                      prefixIcon: const Icon(Icons.article_outlined),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    onSubmitted: _handleCustomPageInput,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                FilledButton(
+                                  onPressed: () => _handleCustomPageInput(_customPageController.text),
+                                  style: FilledButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isWeb ? 24 : 16,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: const Text('Add'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      _getPhaseTitle(),
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: _getPhaseColor(),
-                        fontSize: isWeb ? 24 : 20,
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Page Grid Section
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Choose from Suggestions',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: _loadRandomPages,
+                                  icon: const Icon(Icons.refresh_rounded),
+                                  tooltip: 'Get new suggestions',
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: GridView.builder(
+                              padding: EdgeInsets.zero,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: isWeb ? 4 : (isTablet ? 3 : 2),
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: isWeb ? 1.1 : 1.0,
+                              ),
+                              itemCount: _currentPageOptions.length,
+                              itemBuilder: (context, index) {
+                                final page = _currentPageOptions[index];
+                                return _buildCleanPageCard(page, index);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _getPhaseSubtitle(),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                        fontSize: isWeb ? 16 : 14,
-                      ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              
-              // Page grid
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isWeb ? 5 : isTablet ? 3 : 2,
-                    crossAxisSpacing: isWeb ? 24 : 12,
-                    mainAxisSpacing: isWeb ? 24 : 12,
-                    childAspectRatio: isWeb ? 0.85 : 0.75,
-                  ),
-                  itemCount: _currentPageOptions.length,
-                  itemBuilder: (context, index) {
-                    final page = _currentPageOptions[index];
-                    return _buildModernPageCard(page, index, isWeb: isWeb);
-                  },
-                ),
-              ),
-              
-              // Refresh button
-              if (isWeb) ...[
-                const SizedBox(height: 24),
-                OutlinedButton.icon(
-                  onPressed: _loadRandomPages,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Get New Pages'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -988,225 +1070,78 @@ class _RaceScreenState extends State<RaceScreen> {
     final isWeb = screenSize.width > 800;
     final isTablet = screenSize.width > 600;
     
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(isWeb ? 16 : 12),
-          child: Column(
-            children: [
-              // Compact timer header
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isWeb ? 24 : 16,
-                  vertical: isWeb ? 12 : 10,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF388E3C),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.timer_rounded,
-                      color: Colors.white,
-                      size: isWeb ? 20 : 18,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      _formatDuration(_currentRoundDuration),
-                      style: TextStyle(
-                        fontSize: isWeb ? 24 : 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Timer Header - Fixed height
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(isWeb ? 24 : 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
               ),
-              
-              SizedBox(height: isWeb ? 16 : 12),
-              
-              // Compact race info
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isWeb ? 16 : 12,
-                  vertical: isWeb ? 12 : 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.sports_score_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Round $_currentRound of ${widget.rounds}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: isWeb ? 16 : 12),
-              
-              // Horizontal race path - more compact
-              Container(
-                padding: EdgeInsets.all(isWeb ? 16 : 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    
-                    // Compact start -> target layout
-                    Row(
-                      children: [
-                        Expanded(child: _buildCompactPathCard(_startPage!, isStart: true)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.arrow_forward_rounded, size: 24, color: Theme.of(context).colorScheme.primary),
-                        ),
-                        Expanded(child: _buildCompactPathCard(_endPage!, isStart: false)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              SizedBox(height: isWeb ? 16 : 12),
-              
-              // Compact player selection header
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isWeb ? 16 : 12,
-                  vertical: isWeb ? 12 : 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.emoji_events_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: isWeb ? 20 : 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Who won?',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: isWeb ? 16 : 12),
-              
-              // Player buttons - takes remaining space
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: isWeb ? 
-                            (widget.players.length > 4 ? 3 : 2) : 
-                            (isTablet ? 2 : 1),
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: isWeb ? 4.0 : 5.0,
-                        ),
-                        itemCount: widget.players.length,
-                        itemBuilder: (context, index) {
-                          final player = widget.players[index];
-                          final colors = [
-                            const Color(0xFF1976D2), const Color(0xFFD32F2F), const Color(0xFF388E3C), 
-                            const Color(0xFFFF6F00), const Color(0xFF7B1FA2), const Color(0xFF00796B)
-                          ];
-                          final color = colors[index % colors.length];
-                          
-                          return Card(
-                            elevation: 1,
-                            shadowColor: Colors.transparent,
-                            surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Round $_currentRound of ${widget.rounds}',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: isWeb ? 16 : 14,
+                              fontWeight: FontWeight.w600,
                             ),
-                            child: InkWell(
-                              onTap: () => _playerWins(player),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: color,
-                                ),
-                                child: Center(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 28,
-                                        height: 28,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            player.name.substring(0, 1).toUpperCase(),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Flexible(
-                                        child: Text(
-                                          player.name,
-                                          style: TextStyle(
-                                            fontSize: isWeb ? 16 : 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatDuration(_currentRoundDuration),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isWeb ? 36 : 28,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                              letterSpacing: 1.0,
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.timer_rounded,
+                          color: Colors.white,
+                          size: isWeb ? 32 : 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            
+            // Content Area - Takes remaining space
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(isWeb ? 24 : 16),
+                child: isWeb ? _buildWebTwoColumnLayout() : _buildMobileLayout(),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1277,42 +1212,40 @@ class _RaceScreenState extends State<RaceScreen> {
     return Row(
       children: [
         Expanded(
-          flex: 2,
-          child: _buildRacePathCard(_startPage!, isStart: true),
+          child: _buildCleanRacePathCard(_startPage!, isStart: true),
         ),
-        Expanded(
-          flex: 1,
+        Container(
+          width: 80,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.arrow_forward,
-                  size: 32,
-                  color: Colors.white,
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'NAVIGATE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                'Navigate',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,
-                  letterSpacing: 1,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
         Expanded(
-          flex: 2,
-          child: _buildRacePathCard(_endPage!, isStart: false),
+          child: _buildCleanRacePathCard(_endPage!, isStart: false),
         ),
       ],
     );
@@ -1321,36 +1254,38 @@ class _RaceScreenState extends State<RaceScreen> {
   Widget _buildMobileRacePath() {
     return Column(
       children: [
-        _buildRacePathCard(_startPage!, isStart: true),
-        const SizedBox(height: 20),
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_down,
-                size: 28,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'NAVIGATE',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-                letterSpacing: 1,
-              ),
-            ),
-          ],
+        Expanded(
+          child: _buildCleanRacePathCard(_startPage!, isStart: true),
         ),
-        const SizedBox(height: 20),
-        _buildRacePathCard(_endPage!, isStart: false),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Navigate',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _buildCleanRacePathCard(_endPage!, isStart: false),
+        ),
       ],
     );
   }
@@ -1363,7 +1298,7 @@ class _RaceScreenState extends State<RaceScreen> {
     return Container(
       padding: EdgeInsets.all(isWeb ? 24 : 16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color,
@@ -1371,7 +1306,7 @@ class _RaceScreenState extends State<RaceScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -1428,7 +1363,7 @@ class _RaceScreenState extends State<RaceScreen> {
               page.extract!,
               style: TextStyle(
                 fontSize: 13,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.3,
               ),
               textAlign: TextAlign.center,
@@ -1437,6 +1372,976 @@ class _RaceScreenState extends State<RaceScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildWebBoldPath() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildBoldPathCard(_startPage!, isStart: true),
+        ),
+        Container(
+          width: 120,
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(40),
+                  border: Border.all(
+                    color: const Color(0xFF388E3C),
+                    width: 4,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.double_arrow_rounded,
+                  size: 40,
+                  color: Color(0xFF388E3C),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'NAVIGATE',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF1A1A1A),
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _buildBoldPathCard(_endPage!, isStart: false),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileBoldPath() {
+    return Column(
+      children: [
+        _buildBoldPathCard(_startPage!, isStart: true),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF388E3C),
+              width: 3,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.keyboard_double_arrow_down_rounded,
+                size: 32,
+                color: const Color(0xFF388E3C),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'NAVIGATE',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF388E3C),
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildBoldPathCard(_endPage!, isStart: false),
+      ],
+    );
+  }
+
+  Widget _buildBoldPathCard(WikipediaPage page, {required bool isStart}) {
+    final color = isStart ? const Color(0xFF1976D2) : const Color(0xFF388E3C);
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    
+    return Container(
+      padding: EdgeInsets.all(isWeb ? 32 : 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: color,
+          width: 4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: isWeb ? 100 : 80,
+            height: isWeb ? 100 : 80,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(isWeb ? 50 : 40),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(
+              isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+              color: Colors.white,
+              size: isWeb ? 50 : 40,
+            ),
+          ),
+          SizedBox(height: isWeb ? 24 : 20),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isWeb ? 24 : 16, 
+              vertical: isWeb ? 12 : 10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              isStart ? 'START' : 'TARGET',
+              style: TextStyle(
+                fontSize: isWeb ? 18 : 16,
+                fontWeight: FontWeight.w900,
+                color: color,
+                letterSpacing: 2.0,
+              ),
+            ),
+          ),
+          SizedBox(height: isWeb ? 24 : 20),
+          Text(
+            page.title,
+            style: TextStyle(
+              fontSize: isWeb ? 28 : 22,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF1A1A1A),
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: isWeb ? 4 : 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (page.extract != null && page.extract!.isNotEmpty && isWeb) ...[
+            SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F8F8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFE0E0E0),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                page.extract!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF666666),
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFunPathCard(WikipediaPage page, {required bool isStart}) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    final primaryColor = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.tertiary;
+    final emoji = isStart ? '🚀' : '🎯';
+    final label = isStart ? 'START' : 'FINISH';
+    
+    return Card(
+      elevation: 6,
+      shadowColor: primaryColor.withValues(alpha: 0.3),
+      child: Container(
+        padding: EdgeInsets.all(isWeb ? 20 : 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              primaryColor.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.surface,
+            ],
+          ),
+          border: Border.all(
+            color: primaryColor.withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Fun emoji header
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    emoji,
+                    style: TextStyle(fontSize: isWeb ? 24 : 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: isWeb ? 16 : 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Page title with fun styling
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: primaryColor.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    page.title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: isWeb ? 16 : 14,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: isWeb ? 3 : 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  if (page.extract != null && page.extract!.isNotEmpty && isWeb) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      page.extract!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleCustomPageInput(String title) {
+    if (title.trim().isEmpty) return;
+    
+    // Create a custom Wikipedia page from the input
+    final customPage = WikipediaPage(
+      pageId: -1, // Use -1 to indicate custom page
+      title: title.trim(),
+      extract: 'Custom page: ${title.trim()}',
+    );
+    
+    // Clear the text field
+    _customPageController.clear();
+    
+    // Select this custom page
+    _selectPage(customPage);
+  }
+
+  Widget _buildFunPageSelectionCard(WikipediaPage page, int index, {bool isWeb = false}) {
+    return Card(
+      elevation: 4,
+      shadowColor: _getPhaseColor().withValues(alpha: 0.3),
+      child: InkWell(
+        onTap: () => _selectPage(page),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                _getPhaseColor().withValues(alpha: 0.1),
+                Theme.of(context).colorScheme.surface,
+              ],
+            ),
+            border: Border.all(
+              color: _getPhaseColor().withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(isWeb ? 16 : 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with number
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _getPhaseColor(),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getPhaseColor().withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: _getPhaseColor().withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.article_rounded,
+                        color: _getPhaseColor(),
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Title
+                Expanded(
+                  child: Text(
+                    page.title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: isWeb ? 14 : 13,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    maxLines: isWeb ? 3 : 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Extract preview
+                if (page.extract != null && page.extract!.isNotEmpty) ...[
+                  Text(
+                    page.extract!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontSize: isWeb ? 12 : 11,
+                      height: 1.3,
+                    ),
+                    maxLines: isWeb ? 3 : 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                
+                // Select button
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _getPhaseColor(),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getPhaseColor().withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.touch_app_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'SELECT',
+                        style: TextStyle(
+                          fontSize: isWeb ? 12 : 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCleanPageCard(WikipediaPage page, int index) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: () => _selectPage(page),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getPhaseColor(),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.article_outlined,
+                    color: _getPhaseColor(),
+                    size: 20,
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Title
+              Expanded(
+                child: Text(
+                  page.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: isWeb ? 14 : 13,
+                  ),
+                  maxLines: isWeb ? 3 : 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Extract
+              if (page.extract != null && page.extract!.isNotEmpty)
+                Text(
+                  page.extract!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontSize: isWeb ? 12 : 11,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              
+              const SizedBox(height: 12),
+              
+              // Select button
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => _selectPage(page),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _getPhaseColor(),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'SELECT',
+                    style: TextStyle(
+                      fontSize: isWeb ? 12 : 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerCard(Player player, int index) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    final colors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.secondary,
+      Theme.of(context).colorScheme.tertiary,
+      const Color(0xFFE91E63), // Pink
+      const Color(0xFF9C27B0), // Purple
+      const Color(0xFF009688), // Teal
+    ];
+    final color = colors[index % colors.length];
+    
+    return Card(
+      elevation: 3,
+      child: InkWell(
+        onTap: () => _playerWins(player),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: color,
+          ),
+          padding: EdgeInsets.all(isWeb ? 16 : 12),
+          child: Row(
+            children: [
+              Container(
+                width: isWeb ? 40 : 32,
+                height: isWeb ? 40 : 32,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: Text(
+                    player.name.substring(0, 1).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: isWeb ? 18 : 14,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  player.name,
+                  style: TextStyle(
+                    fontSize: isWeb ? 16 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCleanRacePathCard(WikipediaPage page, {required bool isStart}) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    final primaryColor = isStart 
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.tertiary;
+    final containerColor = isStart 
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.tertiaryContainer;
+    final onContainerColor = isStart 
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onTertiaryContainer;
+    
+    return Card(
+      elevation: 3,
+      child: Padding(
+        padding: EdgeInsets.all(isWeb ? 20 : 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: containerColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                color: onContainerColor,
+                size: isWeb ? 32 : 24,
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Label
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                isStart ? 'START' : 'TARGET',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isWeb ? 12 : 11,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Page title
+            Expanded(
+              child: Center(
+                child: Text(
+                  page.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: isWeb ? 16 : 14,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: isWeb ? 4 : 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebTwoColumnLayout() {
+    return Row(
+      children: [
+        // Left Column - Race Path (takes 60% of width)
+        Expanded(
+          flex: 3,
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Race Path',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _buildCleanRacePathCard(_startPage!, isStart: true),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.arrow_downward_rounded,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Navigate',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildCleanRacePathCard(_endPage!, isStart: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(width: 16),
+        
+        // Right Column - Player Selection (takes 40% of width)
+        Expanded(
+          flex: 2,
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Who reached the target?',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: widget.players.length,
+                      itemBuilder: (context, index) {
+                        final player = widget.players[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildWebPlayerCard(player, index),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        // Race Path Section
+        Expanded(
+          flex: 2,
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Race Path',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _buildMobileRacePath(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Player Selection Section
+        Expanded(
+          flex: 1,
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Who reached the target?',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: EdgeInsets.zero,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 2.5,
+                      ),
+                      itemCount: widget.players.length,
+                      itemBuilder: (context, index) {
+                        final player = widget.players[index];
+                        return _buildPlayerCard(player, index);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebPlayerCard(Player player, int index) {
+    final colors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.secondary,
+      Theme.of(context).colorScheme.tertiary,
+      const Color(0xFFE91E63), // Pink
+      const Color(0xFF9C27B0), // Purple
+      const Color(0xFF009688), // Teal
+    ];
+    final color = colors[index % colors.length];
+    
+    return Card(
+      elevation: 3,
+      child: InkWell(
+        onTap: () => _playerWins(player),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: color,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Text(
+                    player.name.substring(0, 1).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  player.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(
+                Icons.touch_app_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
