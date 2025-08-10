@@ -167,215 +167,260 @@ class _RaceScreenState extends State<RaceScreen> {
   void _showRoundCompleteDialog() {
     final winner = _completedRounds.last;
     final winnerName = widget.players.firstWhere((p) => p.id == winner.winnerId).name;
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
     
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFD700),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.emoji_events_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Round Complete!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
         ),
-        content: SizedBox(
-          width: double.maxFinite,
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          width: isWeb ? 600 : double.maxFinite,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(28),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Winner announcement
+              // Header with winner announcement
               Container(
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: EdgeInsets.all(isWeb ? 32 : 24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
                   ),
                 ),
                 child: Column(
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFFD700),
-                        shape: BoxShape.circle,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
-                        Icons.star_rounded,
+                      child: Icon(
+                        Icons.emoji_events_rounded,
                         color: Colors.white,
-                        size: 32,
+                        size: isWeb ? 48 : 36,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isWeb ? 20 : 16),
                     Text(
-                      '$winnerName wins Round ${winner.roundNumber}!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      'Round ${winner.roundNumber} Complete!',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFFB8860B),
+                        fontSize: isWeb ? 28 : 24,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade500,
-                        borderRadius: BorderRadius.circular(12),
+                    Text(
+                      '$winnerName is the winner!',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: isWeb ? 20 : 18,
                       ),
-                      child: Text(
-                        'Time: ${_formatDuration(winner.duration)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.timer_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Time: ${_formatDuration(winner.duration)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Content section with leaderboard
+              Padding(
+                padding: EdgeInsets.all(isWeb ? 24 : 20),
+                child: Column(
+                  children: [
+                    Text(
+                      'Current Standings',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Leaderboard
+                    Container(
+                      constraints: BoxConstraints(maxHeight: isWeb ? 300 : 200),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: widget.players.length,
+                        itemBuilder: (context, index) {
+                          final player = widget.players[index];
+                          final score = _playerScores[player.id] ?? 0;
+                          final isRoundWinner = player.id == winner.winnerId;
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: Card(
+                              elevation: isRoundWinner ? 4 : 1,
+                              color: isRoundWinner 
+                                  ? Theme.of(context).colorScheme.primaryContainer
+                                  : Theme.of(context).colorScheme.surface,
+                              child: Padding(
+                                padding: EdgeInsets.all(isWeb ? 16 : 12),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: isWeb ? 40 : 32,
+                                      height: isWeb ? 40 : 32,
+                                      decoration: BoxDecoration(
+                                        color: isRoundWinner
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.outline,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          player.name.substring(0, 1).toUpperCase(),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: isWeb ? 16 : 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: isWeb ? 16 : 12),
+                                    Expanded(
+                                      child: Text(
+                                        player.name,
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: isRoundWinner ? FontWeight.bold : FontWeight.w500,
+                                          color: isRoundWinner 
+                                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                                              : Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isRoundWinner
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.surfaceContainer,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '$score ${score == 1 ? 'win' : 'wins'}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: isRoundWinner 
+                                              ? Colors.white
+                                              : Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isRoundWinner) ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.emoji_events_outlined,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    
+                    SizedBox(height: isWeb ? 24 : 20),
+                    
+                    // Continue button
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            // For subsequent rounds, we only need to select the end page
+                            // since start page is already set from previous round
+                            _phase = _currentRound == 1 ? RacePhase.selectingStart : RacePhase.selectingEnd;
+                            if (_currentRound == 1) {
+                              _startPage = null;
+                            }
+                            _endPage = null;
+                          });
+                          _loadRandomPages();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isWeb ? 32 : 24,
+                            vertical: isWeb ? 16 : 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.play_arrow_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              _currentRound >= widget.rounds 
+                                  ? 'View Results'
+                                  : 'Continue to Round $_currentRound',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: isWeb ? 16 : 14,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              
-              // Current scores
-              Text(
-                'Current Leaderboard',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              
-              // Scores list
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: widget.players.length,
-                  itemBuilder: (context, index) {
-                    final player = widget.players[index];
-                    final score = _playerScores[player.id] ?? 0;
-                    final isWinner = player.id == winner.winnerId;
-                    
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isWinner 
-                            ? const Color(0xFFFFD700).withValues(alpha: 0.1)
-                            : Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
-                        border: isWinner ? Border.all(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                        ) : null,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: isWinner 
-                                  ? const Color(0xFFFFD700)
-                                  : Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                player.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              player.name,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: isWinner ? FontWeight.bold : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isWinner
-                                  ? const Color(0xFFFFD700)
-                                  : Theme.of(context).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '$score ${score == 1 ? 'win' : 'wins'}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                                color: isWinner 
-                                    ? Colors.white
-                                    : Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
             ],
           ),
         ),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                // For subsequent rounds, we only need to select the end page
-                // since start page is already set from previous round
-                _phase = _currentRound == 1 ? RacePhase.selectingStart : RacePhase.selectingEnd;
-                if (_currentRound == 1) {
-                  _startPage = null;
-                }
-                _endPage = null;
-              });
-              _loadRandomPages();
-            },
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.play_arrow_rounded, size: 18),
-                const SizedBox(width: 8),
-                Text('Start Round $_currentRound'),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -820,7 +865,7 @@ class _RaceScreenState extends State<RaceScreen> {
                                 crossAxisCount: isWeb ? 4 : (isTablet ? 3 : 2),
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
-                                childAspectRatio: isWeb ? 1.1 : 1.0,
+                                childAspectRatio: isWeb ? 1.3 : 1.0,
                               ),
                               itemCount: _currentPageOptions.length,
                               itemBuilder: (context, index) {
@@ -1867,7 +1912,7 @@ class _RaceScreenState extends State<RaceScreen> {
         onTap: () => _selectPage(page),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isWeb ? 12 : 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1883,51 +1928,54 @@ class _RaceScreenState extends State<RaceScreen> {
                     ),
                     child: Text(
                       '${index + 1}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: isWeb ? 10 : 12,
                       ),
                     ),
                   ),
                   Icon(
                     Icons.article_outlined,
                     color: _getPhaseColor(),
-                    size: 20,
+                    size: isWeb ? 16 : 20,
                   ),
                 ],
               ),
               
-              const SizedBox(height: 12),
+              SizedBox(height: isWeb ? 8 : 12),
               
               // Title
-              Expanded(
-                child: Text(
-                  page.title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: isWeb ? 14 : 13,
-                  ),
-                  maxLines: isWeb ? 3 : 2,
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                page.title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: isWeb ? 13 : 13,
+                  height: 1.2,
                 ),
+                maxLines: isWeb ? 2 : 2,
+                overflow: TextOverflow.ellipsis,
               ),
               
-              const SizedBox(height: 8),
+              SizedBox(height: isWeb ? 6 : 8),
               
-              // Extract
-              if (page.extract != null && page.extract!.isNotEmpty)
-                Text(
-                  page.extract!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    fontSize: isWeb ? 12 : 11,
+              // Extract (only on web and only if space allows)
+              if (page.extract != null && page.extract!.isNotEmpty && isWeb) ...[
+                Expanded(
+                  child: Text(
+                    page.extract!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontSize: 11,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              
-              const SizedBox(height: 12),
+                SizedBox(height: 8),
+              ] else
+                const Spacer(),
               
               // Select button
               SizedBox(
@@ -1936,7 +1984,7 @@ class _RaceScreenState extends State<RaceScreen> {
                   onPressed: () => _selectPage(page),
                   style: FilledButton.styleFrom(
                     backgroundColor: _getPhaseColor(),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: EdgeInsets.symmetric(vertical: isWeb ? 6 : 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1944,7 +1992,7 @@ class _RaceScreenState extends State<RaceScreen> {
                   child: Text(
                     'SELECT',
                     style: TextStyle(
-                      fontSize: isWeb ? 12 : 11,
+                      fontSize: isWeb ? 11 : 11,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
