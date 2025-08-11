@@ -1,0 +1,23 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="88" fill="#2563EB" stroke="#1D4ED8" stroke-width="4"/>
+  
+  <!-- Speed/racing icon -->
+  <g transform="translate(96,96)">
+    <!-- Lightning bolt / speed lines -->
+    <path d="M-24 -32 L-8 -12 L-20 -12 L12 24 L-4 4 L8 4 L-24 -32 Z" fill="white"/>
+    
+    <!-- Speed lines around the icon -->
+    <g stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7">
+      <line x1="-45" y1="-20" x2="-35" y2="-16"/>
+      <line x1="-45" y1="0" x2="-35" y2="0"/>
+      <line x1="-45" y1="20" x2="-35" y2="16"/>
+      <line x1="35" y1="-20" x2="45" y2="-16"/>
+      <line x1="35" y1="0" x2="45" y2="0"/>
+      <line x1="35" y1="20" x2="45" y2="16"/>
+    </g>
+  </g>
+  
+  <!-- Ring accent -->
+  <circle cx="96" cy="96" r="76" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+</svg>
