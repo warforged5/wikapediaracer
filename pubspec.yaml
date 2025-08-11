@@ -1,5 +1,5 @@
 name: wikapediaracer
-description: "A new Flutter project."
+description: "Helping you race though wikapedia"
 publish_to: 'none'
 version: 0.1.0
 
@@ -15,6 +15,7 @@ dependencies:
   share_plus: ^7.2.1
   uuid: ^4.1.0
   json_annotation: ^4.8.1
+  flutter_native_splash: ^2.4.6
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
@@ -26,3 +27,24 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/images/
+
+flutter_native_splash:
+  # Background color using the app's primary theme
+  color: "#2563EB"  # Primary blue matching the app theme
+  color_dark: "#1E293B"  # Dark blue for dark mode
+  
+  # Fullscreen for a clean look
+  fullscreen: true
+  
+  # Android 12+ adaptive icon support
+  android_12:
+    icon_background_color: "#2563EB"
+    icon_background_color_dark: "#1E293B"
+  
+  # Enable for supported platforms
+  web: true
+  android: true
+  ios: true
