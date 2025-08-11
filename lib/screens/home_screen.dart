@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         Expanded(
@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: _buildActionCard(
                             context,
@@ -206,7 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
                         Expanded(
                           child: _buildActionCard(
                             context,
@@ -224,11 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
+                        const SizedBox(width: 20),
                         Expanded(
                           child: _buildActionCard(
                             context,
@@ -248,7 +248,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                        const Expanded(child: SizedBox()),
                       ],
                     ),
                   ],
@@ -298,10 +297,13 @@ class _HomeScreenState extends State<HomeScreen> {
         // Action buttons
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 20),
                 _buildActionCard(
                   context,
                   icon: Icons.flash_on,
@@ -384,7 +386,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-              ],
+                const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
@@ -415,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return SizedBox(
       width: double.infinity,
-      height: isPrimary ? 120 : 100,
+      height: isPrimary ? 120 : 110,
       child: Card(
         child: InkWell(
           onTap: onTap,
@@ -433,8 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: isPrimary ? 72 : 64,
-                  height: isPrimary ? 72 : 64,
+                  width: isPrimary ? 72 : 68,
+                  height: isPrimary ? 72 : 68,
                   decoration: BoxDecoration(
                     color: isPrimary 
                         ? Colors.white.withValues(alpha: 0.2)
@@ -444,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Icon(
                     icon,
                     color: isPrimary ? Colors.white : color,
-                    size: isPrimary ? 36 : 32,
+                    size: isPrimary ? 36 : 34,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -455,13 +459,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        style: (isPrimary 
+                            ? Theme.of(context).textTheme.titleLarge
+                            : Theme.of(context).textTheme.titleMedium)?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isPrimary ? Colors.white : null,
                           letterSpacing: 0,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
