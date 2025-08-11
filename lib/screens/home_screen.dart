@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'groups_screen.dart';
 import 'quick_race_setup_screen.dart';
 import 'history_screen.dart';
+import 'achievements_screen.dart';
 import 'theme_selector_screen.dart';
 import '../themes/app_theme.dart';
 
@@ -205,6 +206,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildActionCard(
+                            context,
+                            icon: Icons.emoji_events,
+                            title: 'Achievements',
+                            subtitle: 'Track progress',
+                            color: const Color(0xFFFFD700),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AchievementsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -327,6 +346,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const HistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildActionCard(
+                  context,
+                  icon: Icons.emoji_events,
+                  title: 'Achievements',
+                  subtitle: 'Track your progress and wins',
+                  color: const Color(0xFFFFD700),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AchievementsScreen(),
                       ),
                     );
                   },

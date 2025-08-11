@@ -3,8 +3,10 @@ import 'dart:async';
 import '../models/player.dart';
 import '../models/wikipedia_page.dart';
 import '../models/race_result.dart';
+import '../models/achievement.dart';
 import '../services/wikipedia_service.dart';
 import '../services/storage_service.dart';
+import '../services/achievement_service.dart';
 import 'race_results_screen.dart';
 
 enum RacePhase {
@@ -129,7 +131,7 @@ class _RaceScreenState extends State<RaceScreen> {
     // This method now just updates the phase to racing
   }
 
-  void _playerWins(Player player) {
+  Future<void> _playerWins(Player player) async {
     _raceTimer?.cancel();
     _playerScores[player.id] = (_playerScores[player.id] ?? 0) + 1;
     
@@ -145,7 +147,7 @@ class _RaceScreenState extends State<RaceScreen> {
     // No dialog to close in new full-screen design
     
     if (_currentRound >= widget.rounds) {
-      _completeRace();
+      await _completeRace();
     } else {
       _nextRound();
     }
@@ -425,7 +427,7 @@ class _RaceScreenState extends State<RaceScreen> {
     );
   }
 
-  void _completeRace() {
+  Future<void> _completeRace() async {
     _raceTimer?.cancel();
     setState(() => _phase = RacePhase.raceComplete);
     
@@ -447,9 +449,17 @@ class _RaceScreenState extends State<RaceScreen> {
       totalRounds: widget.rounds,
     );
     
-    // Save result if it's a group race
-    if (widget.groupId != null) {
-      StorageService.instance.saveRaceResult(raceResult);
+    // Always save race result (both quick races and group races)
+    await StorageService.instance.saveRaceResult(raceResult);
+    
+    // Check achievements for all participants
+    final newlyUnlockedAchievements = <String, List<Achievement>>{};
+    for (final player in widget.players) {
+      AchievementService.instance.setCurrentPlayer(player.id);
+      final newAchievements = await AchievementService.instance.checkAndUpdateAchievements(raceResult);
+      if (newAchievements.isNotEmpty) {
+        newlyUnlockedAchievements[player.id] = newAchievements;
+      }
     }
     
     Navigator.pushReplacement(

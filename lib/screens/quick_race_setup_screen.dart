@@ -328,14 +328,14 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             child: Row(
               children: [
                 Icon(
-                  Icons.info_outline,
+                  Icons.flash_on,
                   color: Theme.of(context).colorScheme.primary,
                   size: 22,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Quick races are not saved to your history. Create a group to track wins and losses.',
+                    'Quick races are saved to your history and count toward achievements. Race fast and climb the leaderboard!',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
