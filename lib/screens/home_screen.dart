@@ -233,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             icon: Icons.military_tech,
                             title: 'Achievements',
-                            subtitle: 'Track progress',
+                            subtitle: '',
                             color: const Color(0xFFFFD700),
                             onTap: () {
                               Navigator.push(
@@ -251,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             icon: Icons.palette,
                             title: 'Themes',
-                            subtitle: 'Customize appearance',
+                            subtitle: '',
                             color: Colors.purple,
                             onTap: () {
                               Navigator.push(
@@ -406,8 +406,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   icon: Icons.palette,
                   title: 'Themes',
-                  subtitle: 'Customize your experience',
-                  color: Colors.purple,
+                  
+                  color: Colors.purple,subtitle: 'Customize your experience',
                   onTap: () {
                     Navigator.push(
                       context,
