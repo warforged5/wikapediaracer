@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/tournament.dart';
 import '../models/player.dart';
+import '../models/race_result.dart';
+import 'race_screen.dart';
 
 class TournamentBracketScreen extends StatefulWidget {
   final Tournament tournament;
@@ -333,7 +335,7 @@ class _TournamentBracketScreenState extends State<TournamentBracketScreen> {
               ],
             ),
 
-            // Race result details
+            // Race result details or start button
             if (match.raceResult != null) ...[
               const SizedBox(height: 12),
               Container(
@@ -374,6 +376,50 @@ class _TournamentBracketScreenState extends State<TournamentBracketScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (match.isPending && match.participantIds.length >= 2) ...[
+              // Show start match button for matches that are ready to start
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => _startMatch(match),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: const Text('Start Match'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ] else if (match.participantIds.isEmpty) ...[
+              // Show waiting message for matches that need participants
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Waiting for previous matches to complete',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -525,5 +571,52 @@ class _TournamentBracketScreenState extends State<TournamentBracketScreen> {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startMatch(TournamentMatch match) {
+    if (match.participantIds.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Need at least 2 participants to start a match')),
+      );
+      return;
+    }
+
+    // Find the players for this match
+    final participants = <Player>[];
+    for (final participantId in match.participantIds) {
+      try {
+        final participant = _tournament.participants.firstWhere((p) => p.id == participantId);
+        participants.add(participant);
+      } catch (e) {
+        // Player not found, skip
+      }
+    }
+
+    if (participants.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot find match participants')),
+      );
+      return;
+    }
+
+    // Navigate to race screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RaceScreen(
+          players: participants,
+          rounds: 3, // Default to 3 rounds for tournament matches
+          groupId: null, // Tournament matches aren't part of groups
+        ),
+      ),
+    ).then((result) {
+      // TODO: Handle race result and update tournament bracket
+      if (result is RaceResult) {
+        // For now, just show a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Match completed! Winner: ${result.winner.name}')),
+        );
+        // In a full implementation, you would call TournamentService.submitMatchResult here
+      }
+    });
   }
 }

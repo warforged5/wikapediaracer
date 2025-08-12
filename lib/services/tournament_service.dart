@@ -62,18 +62,13 @@ class TournamentService {
     DateTime? startTime,
     Map<String, dynamic> settings = const {},
   }) async {
-    // Use the first participant as organizer if provided, otherwise create a default organizer
-    String organizerId;
-    List<Player> participants = [...initialParticipants];
-    
-    if (participants.isNotEmpty) {
-      organizerId = participants.first.id;
-    } else {
-      // Create a default organizer player
-      final organizer = Player(name: 'Tournament Organizer');
-      participants.add(organizer);
-      organizerId = organizer.id;
+    if (initialParticipants.isEmpty) {
+      throw Exception('At least one participant (organizer) is required');
     }
+
+    // Use the first participant as organizer
+    final organizerId = initialParticipants.first.id;
+    final participants = [...initialParticipants];
 
     final tournament = Tournament(
       name: name,

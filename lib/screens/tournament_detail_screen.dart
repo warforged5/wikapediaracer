@@ -3,6 +3,7 @@ import '../models/tournament.dart';
 import '../models/player.dart';
 import '../services/tournament_service.dart';
 import '../services/sharing_service.dart';
+import '../widgets/player_selector_dialog.dart';
 import 'tournament_bracket_screen.dart';
 
 class TournamentDetailScreen extends StatefulWidget {
@@ -536,58 +537,20 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
   Future<void> _joinTournament() async {
     if (!_canJoin) return;
 
-    // Show a dialog to get player name
-    final playerName = await showDialog<String>(
+    // Show player selector dialog
+    final player = await showDialog<Player>(
       context: context,
-      builder: (context) {
-        final controller = TextEditingController();
-        return AlertDialog(
-          title: const Text('Join Tournament'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter your name to join this tournament:'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'Your Name',
-                  border: OutlineInputBorder(),
-                ),
-                autofocus: true,
-                onSubmitted: (value) {
-                  if (value.trim().isNotEmpty) {
-                    Navigator.of(context).pop(value.trim());
-                  }
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  Navigator.of(context).pop(name);
-                }
-              },
-              child: const Text('Join'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => const PlayerSelectorDialog(
+        title: 'Join Tournament',
+        subtitle: 'Select your player profile to join this tournament',
+      ),
     );
 
-    if (playerName == null || playerName.isEmpty) return;
+    if (player == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final player = Player(name: playerName);
       final updatedTournament = await TournamentService.instance.joinTournament(
         _tournament.id,
         player,

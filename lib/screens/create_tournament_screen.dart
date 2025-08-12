@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/tournament.dart';
+import '../models/player.dart';
 import '../services/tournament_service.dart';
+import '../widgets/player_selector_dialog.dart';
 
 class CreateTournamentScreen extends StatefulWidget {
   const CreateTournamentScreen({super.key});
@@ -18,6 +20,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   int _maxParticipants = 8;
   DateTime? _startTime;
   bool _isLoading = false;
+  Player? _selectedOrganizer;
 
   @override
   void dispose() {
@@ -74,6 +77,50 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                       hintText: 'Describe your tournament...',
                       prefixIcon: Icon(Icons.description_outlined),
                       border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Tournament Organizer
+                  Text(
+                    'Tournament Organizer',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: _selectOrganizer,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).colorScheme.outline),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person_rounded,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _selectedOrganizer?.name ?? 'Select organizer...',
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: _selectedOrganizer == null
+                                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)
+                                    : Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down_rounded,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -289,6 +336,22 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     return '$dateStr at $timeStr';
   }
 
+  Future<void> _selectOrganizer() async {
+    final player = await showDialog<Player>(
+      context: context,
+      builder: (context) => const PlayerSelectorDialog(
+        title: 'Select Tournament Organizer',
+        subtitle: 'Choose who will organize this tournament',
+      ),
+    );
+
+    if (player != null) {
+      setState(() {
+        _selectedOrganizer = player;
+      });
+    }
+  }
+
   Future<void> _selectStartTime() async {
     final date = await showDatePicker(
       context: context,
@@ -314,6 +377,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   Future<void> _createTournament() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedOrganizer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a tournament organizer')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -322,6 +392,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         description: _descriptionController.text.trim(),
         format: _selectedFormat,
         maxParticipants: _maxParticipants,
+        initialParticipants: [_selectedOrganizer!],
         startTime: _startTime,
       );
 
