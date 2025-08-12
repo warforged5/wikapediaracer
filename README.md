@@ -27,6 +27,14 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Race history** with detailed round breakdowns
 - **Export race data** for sharing results
 
+### 🏆 Tournament System
+- **Multiple tournament formats**: Single Elimination, Double Elimination, Round Robin, Swiss
+- **Bracket visualization** with real-time match progress
+- **Player profile integration** - select from existing players or create new ones
+- **One-click match starting** directly from bracket view
+- **Tournament result tracking** with champion celebrations
+- **Flexible participant management** (4-32 players)
+
 ### 🎨 Modern Design
 - **Material Design 3** with expressive theming
 - **10 beautiful themes** including light and dark options
@@ -34,10 +42,17 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Clean, intuitive interface** with smooth animations
 - **Accessibility-focused** with proper contrast and navigation
 
+### 📱 Social Sharing
+- **Share race results** with formatted statistics and emojis
+- **Challenge friends** with custom race invitations
+- **Tournament announcements** and result sharing
+- **Personal statistics sharing** with win rates and achievements
+- **Cross-platform sharing** on mobile and web
+
 ### 🌐 Cross-Platform
-- **Android** - Native mobile experience
-- **iOS** - Seamless Apple integration
-- **Web** - Play directly in your browser
+- **Android** - Native mobile experience with native sharing
+- **iOS** - Seamless Apple integration with share sheet
+- **Web** - Play directly in your browser with web sharing API
 - **Windows/macOS/Linux** - Desktop applications
 
 ## 📱 Screenshots
@@ -94,13 +109,29 @@ flutter build windows --release  # or macos/linux
 
 ## 🎮 How to Play
 
-1. **Start a Quick Race** or create a **Group** for organized play
-2. **Add players** to the race (2-6 players recommended)
+### 🏃‍♂️ Quick Race Mode
+1. **Start a Quick Race** for immediate gameplay
+2. **Add players** to the race (2-8 players supported)
 3. **Choose starting page** from suggestions or enter a custom page
 4. **Select target page** - this is where everyone needs to reach
 5. **Race begins!** Players navigate Wikipedia using only internal links
 6. **First to reach the target wins** the round
 7. **Multiple rounds** determine the overall winner
+
+### 👥 Group Mode
+1. **Create a Group** for organized competitions with friends
+2. **Add players** and track statistics over time
+3. **Start group races** with your established roster
+4. **Export results** and view detailed race history
+
+### 🏆 Tournament Mode
+1. **Create Tournament** with custom name and format
+2. **Select organizer** from existing players or create new profile
+3. **Choose format**: Single Elimination, Round Robin, etc.
+4. **Players join** using the player selector dialog
+5. **Start tournament** to generate bracket
+6. **Start matches** directly from the bracket view
+7. **Tournament progresses** automatically as matches complete
 
 ### 🏆 Pro Tips
 - Look for common linking patterns (dates, countries, categories)
@@ -113,20 +144,29 @@ flutter build windows --release  # or macos/linux
 ### Project Structure
 ```
 lib/
-├── main.dart                    # App entry point
-├── models/                      # Data models
-│   ├── player.dart
-│   ├── race_result.dart
-│   └── wikipedia_page.dart
-├── screens/                     # UI screens
-│   ├── home_screen.dart
-│   ├── race_screen.dart
-│   ├── race_results_screen.dart
+├── main.dart                      # App entry point
+├── models/                        # Data models
+│   ├── player.dart               # Player profiles
+│   ├── race_result.dart          # Race results and rounds
+│   ├── tournament.dart           # Tournament system
+│   ├── group.dart                # Group management
+│   └── wikipedia_page.dart       # Wikipedia page data
+├── screens/                       # UI screens
+│   ├── home_screen.dart          # Main navigation hub
+│   ├── race_screen.dart          # Live race interface
+│   ├── race_results_screen.dart  # Results with sharing
+│   ├── tournament_screen.dart    # Tournament browser
+│   ├── tournament_detail_screen.dart
+│   ├── tournament_bracket_screen.dart
 │   └── ...
-├── services/                    # API and storage services
-│   ├── wikipedia_service.dart
-│   └── storage_service.dart
-└── themes/                      # App theming
+├── services/                      # Business logic
+│   ├── wikipedia_service.dart    # Wikipedia API integration
+│   ├── storage_service.dart      # Local data persistence
+│   ├── tournament_service.dart   # Tournament management
+│   └── sharing_service.dart      # Social sharing functionality
+├── widgets/                       # Reusable UI components
+│   └── player_selector_dialog.dart
+└── themes/                        # App theming
     └── app_theme.dart
 ```
 
@@ -136,6 +176,8 @@ lib/
 - **Wikipedia API**: Real-time page data and suggestions
 - **SharedPreferences**: Local data persistence
 - **HTTP**: API communication
+- **JSON Serialization**: Data modeling and persistence
+- **Share Plus**: Native sharing capabilities
 
 ### Development Commands
 
@@ -233,16 +275,20 @@ Having issues? Here are some resources:
 
 ### Upcoming Features
 - [ ] **Multiplayer online races** with real-time synchronization
-- [ ] **Tournament mode** with bracket-style competitions
 - [ ] **Achievement system** with unlockable badges
 - [ ] **Custom Wikipedia sources** (other language editions)
 - [ ] **Race replay system** to review navigation paths
-- [ ] **Social sharing** of race results
 - [ ] **Advanced statistics** and performance analytics
+- [ ] **Tournament live streaming** and spectator mode
+- [ ] **AI opponents** for single-player practice
 
 ### Completed ✅
 - [x] Multi-round racing system
 - [x] Group management and statistics
+- [x] **Tournament system** with multiple formats (Single/Double Elimination, Round Robin, Swiss)
+- [x] **Social sharing** of race results, challenges, and tournament announcements
+- [x] **Player profile system** with selection dialogs
+- [x] **Interactive tournament brackets** with one-click match starting
 - [x] 10 beautiful themes with Material 3 design
 - [x] Cross-platform support (mobile, web, desktop)
 - [x] Responsive design for all screen sizes
