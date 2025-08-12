@@ -5,10 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/group.dart';
 import '../models/race_result.dart';
+import '../models/player.dart';
 
 class StorageService {
   static const String _groupsKey = 'groups';
   static const String _raceResultsKey = 'race_results';
+  static const String _currentPlayerKey = 'current_player';
 
   static StorageService? _instance;
   static StorageService get instance => _instance ??= StorageService._();
@@ -143,5 +145,54 @@ class StorageService {
       'totalRaces': totalRaces,
       'losses': totalRaces - wins,
     };
+  }
+
+  // Current Player Methods
+  Future<Player?> getCurrentPlayer() async {
+    await init();
+    final playerJson = _prefs?.getString(_currentPlayerKey);
+    if (playerJson == null) return null;
+    
+    try {
+      final playerMap = jsonDecode(playerJson);
+      return Player.fromJson(playerMap);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> setCurrentPlayer(Player player) async {
+    await init();
+    final playerJson = jsonEncode(player.toJson());
+    await _prefs?.setString(_currentPlayerKey, playerJson);
+  }
+
+  Future<void> clearCurrentPlayer() async {
+    await init();
+    await _prefs?.remove(_currentPlayerKey);
+  }
+
+  // Generic Data Storage Methods
+  Future<dynamic> getData(String key) async {
+    await init();
+    final jsonData = _prefs?.getString(key);
+    if (jsonData == null) return null;
+    
+    try {
+      return jsonDecode(jsonData);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> saveData(String key, dynamic data) async {
+    await init();
+    final jsonData = jsonEncode(data);
+    await _prefs?.setString(key, jsonData);
+  }
+
+  Future<void> removeData(String key) async {
+    await init();
+    await _prefs?.remove(key);
   }
 }

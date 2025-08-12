@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../models/race_result.dart';
+import '../services/sharing_service.dart';
 
 class RaceResultsScreen extends StatefulWidget {
   final RaceResult result;
@@ -57,6 +58,23 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _shareResults() async {
+    try {
+      await SharingService.instance.shareRaceResult(widget.result);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Results shared successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share results: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildConfetti() {
@@ -184,30 +202,48 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                   // Bottom actions
                   Padding(
                     padding: EdgeInsets.all(isWeb ? 24 : 16),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
+                        // Share button
+                        SizedBox(
+                          width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                            icon: const Icon(Icons.home_rounded),
-                            label: const Text('Home'),
+                            onPressed: () => _shareResults(),
+                            icon: const Icon(Icons.share_rounded),
+                            label: const Text('Share Results'),
                             style: OutlinedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
-                            },
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Race Again'),
-                            style: FilledButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                        const SizedBox(height: 12),
+                        // Navigation buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                                icon: const Icon(Icons.home_rounded),
+                                label: const Text('Home'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                },
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Race Again'),
+                                style: FilledButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

@@ -4,6 +4,7 @@ import 'quick_race_setup_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'theme_selector_screen.dart';
+import 'tournament_screen.dart';
 import '../themes/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -209,12 +210,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
+                    _buildActionCard(
+                      context,
+                      icon: Icons.emoji_events,
+                      title: 'Tournaments',
+                      subtitle: 'Compete in structured competitions',
+                      color: Theme.of(context).colorScheme.secondary,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TournamentScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         Expanded(
                           child: _buildActionCard(
                             context,
-                            icon: Icons.emoji_events,
+                            icon: Icons.military_tech,
                             title: 'Achievements',
                             subtitle: 'Track progress',
                             color: const Color(0xFFFFD700),
@@ -356,6 +373,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildActionCard(
                   context,
                   icon: Icons.emoji_events,
+                  title: 'Tournaments',
+                  subtitle: 'Compete in structured competitions',
+                  color: Theme.of(context).colorScheme.secondary,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TournamentScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildActionCard(
+                  context,
+                  icon: Icons.military_tech,
                   title: 'Achievements',
                   subtitle: 'Track your progress and wins',
                   color: const Color(0xFFFFD700),
