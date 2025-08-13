@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import '../models/player.dart';
 import '../models/wikipedia_page.dart';
@@ -12,6 +13,7 @@ import 'race_results_screen.dart';
 enum RacePhase {
   selectingStart,
   selectingEnd,
+  countdown,
   racing,
   roundComplete,
   raceComplete,
@@ -43,8 +45,11 @@ class _RaceScreenState extends State<RaceScreen> {
   String _loadingMessage = '';
   
   Timer? _raceTimer;
+  Timer? _countdownTimer;
   DateTime? _raceStartTime;
   Duration _currentRoundDuration = Duration.zero;
+  int _countdownSeconds = 0;
+  int _countdownDuration = 5; // Default 5 seconds
   
   final List<RaceRound> _completedRounds = [];
   final Map<String, int> _playerScores = {};
@@ -59,16 +64,32 @@ class _RaceScreenState extends State<RaceScreen> {
       _playerScores[player.id] = 0;
     }
     
-    
-    
+    _loadCountdownDuration();
     _loadRandomPages();
   }
 
   @override
   void dispose() {
     _raceTimer?.cancel();
+    _countdownTimer?.cancel();
     _customPageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCountdownDuration() async {
+    final duration = await StorageService.instance.getData('countdown_duration');
+    if (duration != null && duration is int) {
+      setState(() {
+        _countdownDuration = duration;
+      });
+    }
+  }
+
+  Future<void> _setCountdownDuration(int duration) async {
+    await StorageService.instance.saveData('countdown_duration', duration);
+    setState(() {
+      _countdownDuration = duration;
+    });
   }
 
   Future<void> _loadRandomPages() async {
@@ -108,12 +129,28 @@ class _RaceScreenState extends State<RaceScreen> {
     } else if (_phase == RacePhase.selectingEnd) {
       setState(() {
         _endPage = page;
-        _phase = RacePhase.racing;
-        _raceStartTime = DateTime.now();
+        _phase = RacePhase.countdown;
+        _countdownSeconds = _countdownDuration;
       });
-      _startRaceTimer();
-      _showRaceDialog();
+      _startCountdown();
     }
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _countdownSeconds--;
+      });
+      
+      if (_countdownSeconds <= 0) {
+        _countdownTimer?.cancel();
+        setState(() {
+          _phase = RacePhase.racing;
+          _raceStartTime = DateTime.now();
+        });
+        _startRaceTimer();
+      }
+    });
   }
 
   void _startRaceTimer() {
@@ -129,6 +166,80 @@ class _RaceScreenState extends State<RaceScreen> {
   void _showRaceDialog() {
     // No longer showing a dialog - racing is now full-screen
     // This method now just updates the phase to racing
+  }
+
+  Future<void> _copyPageName(String pageName, String pageType) async {
+    await Clipboard.setData(ClipboardData(text: pageName));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$pageType page name copied: $pageName'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showCountdownSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.timer_rounded,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Countdown Duration'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Choose how many seconds to countdown before starting the race:',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [3, 5, 8, 10, 15].map((duration) {
+                final isSelected = _countdownDuration == duration;
+                return FilterChip(
+                  selected: isSelected,
+                  label: Text('$duration seconds'),
+                  onSelected: (selected) {
+                    if (selected) {
+                      _setCountdownDuration(duration);
+                    }
+                  },
+                  selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                  checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _playerWins(Player player) async {
@@ -560,6 +671,13 @@ class _RaceScreenState extends State<RaceScreen> {
           scrolledUnderElevation: 1,
           surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
           actions: [
+            // Settings button for countdown duration
+            if (_phase == RacePhase.selectingStart || _phase == RacePhase.selectingEnd)
+              IconButton(
+                onPressed: _showCountdownSettings,
+                icon: const Icon(Icons.settings_rounded),
+                tooltip: 'Countdown Settings',
+              ),
             if (_phase != RacePhase.racing && MediaQuery.of(context).size.width > 800)
               Padding(
                 padding: const EdgeInsets.only(right: 16),
@@ -585,13 +703,18 @@ class _RaceScreenState extends State<RaceScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _phase == RacePhase.selectingStart ? Icons.play_arrow : Icons.flag,
+                        _phase == RacePhase.selectingStart ? Icons.play_arrow : (_phase == RacePhase.selectingEnd ? Icons.flag : Icons.timer),
                         color: Colors.white,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _phase == RacePhase.selectingStart ? 'Choose Start' : 'Choose Target',
+                        _phase == RacePhase.selectingStart 
+                          ? 'Choose Start' 
+                          : (_phase == RacePhase.selectingEnd 
+                            ? 'Choose Target'
+                            : 'Get Ready'
+                          ),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -616,6 +739,8 @@ class _RaceScreenState extends State<RaceScreen> {
         return const Color(0xFF1976D2); // Material Blue 700
       case RacePhase.selectingEnd:
         return const Color(0xFFFF6F00); // Material Orange 800
+      case RacePhase.countdown:
+        return const Color(0xFFFF5722); // Material Deep Orange 600
       case RacePhase.racing:
         return const Color(0xFF388E3C); // Material Green 700
       case RacePhase.roundComplete:
@@ -674,9 +799,13 @@ class _RaceScreenState extends State<RaceScreen> {
     }
 
     // Full screen layouts - no phase indicator bar
-    return _phase == RacePhase.racing 
-        ? _buildRacingView() 
-        : _buildPageSelection();
+    if (_phase == RacePhase.racing) {
+      return _buildRacingView();
+    } else if (_phase == RacePhase.countdown) {
+      return _buildCountdownView();
+    } else {
+      return _buildPageSelection();
+    }
   }
 
   String _getPhaseTitle() {
@@ -687,6 +816,8 @@ class _RaceScreenState extends State<RaceScreen> {
         return _currentRound == 1 
             ? 'Round $_currentRound: Select Target Page'
             : 'Round $_currentRound: Select Next Target';
+      case RacePhase.countdown:
+        return 'Round $_currentRound: Get Ready!';
       case RacePhase.racing:
         return 'Round $_currentRound: Racing in Progress!';
       case RacePhase.roundComplete:
@@ -704,6 +835,8 @@ class _RaceScreenState extends State<RaceScreen> {
         return _currentRound == 1 
             ? 'Choose the target page to race to'
             : 'Starting from "${_startPage?.title}" - choose your next target';
+      case RacePhase.countdown:
+        return 'Race starting in $_countdownSeconds seconds...';
       case RacePhase.racing:
         return 'First player to reach "${_endPage?.title}" wins!';
       case RacePhase.roundComplete:
@@ -1197,6 +1330,405 @@ class _RaceScreenState extends State<RaceScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountdownView() {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header with countdown info
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(isWeb ? 24 : 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.timer_rounded,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          size: isWeb ? 32 : 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getPhaseTitle(),
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isWeb ? 24 : 20,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getPhaseSubtitle(),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+                                fontSize: isWeb ? 16 : 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Countdown display
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Large countdown number
+                    Container(
+                      width: isWeb ? 200 : 150,
+                      height: isWeb ? 200 : 150,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(isWeb ? 100 : 75),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_countdownSeconds',
+                          style: TextStyle(
+                            fontSize: isWeb ? 80 : 60,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(height: isWeb ? 40 : 30),
+                    
+                    // Race path display
+                    if (isWeb) _buildWebRacePathPreview() else _buildMobileRacePathPreview(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebRacePathPreview() {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 600),
+      padding: const EdgeInsets.all(24),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.play_arrow_rounded,
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'START',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _startPage?.title ?? '',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () => _copyPageName(_startPage?.title ?? '', 'Start'),
+                          icon: const Icon(Icons.copy_rounded, size: 16),
+                          iconSize: 16,
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                          tooltip: 'Copy start page name',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24),
+              Icon(
+                Icons.arrow_forward_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 32,
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.flag_rounded,
+                            color: Theme.of(context).colorScheme.onTertiaryContainer,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'TARGET',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onTertiaryContainer,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _endPage?.title ?? '',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () => _copyPageName(_endPage?.title ?? '', 'Target'),
+                          icon: const Icon(Icons.copy_rounded, size: 16),
+                          iconSize: 16,
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                          tooltip: 'Copy target page name',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileRacePathPreview() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Start page
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.play_arrow_rounded,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'START',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _startPage?.title ?? '',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        onPressed: () => _copyPageName(_startPage?.title ?? '', 'Start'),
+                        icon: const Icon(Icons.copy_rounded, size: 14),
+                        iconSize: 14,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                        tooltip: 'Copy start page name',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Target page
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.flag_rounded,
+                          color: Theme.of(context).colorScheme.onTertiaryContainer,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'TARGET',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onTertiaryContainer,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _endPage?.title ?? '',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        onPressed: () => _copyPageName(_endPage?.title ?? '', 'Target'),
+                        icon: const Icon(Icons.copy_rounded, size: 14),
+                        iconSize: 14,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                        tooltip: 'Copy target page name',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2134,19 +2666,38 @@ class _RaceScreenState extends State<RaceScreen> {
             
             const SizedBox(height: 12),
             
-            // Page title
+            // Page title with copy button
             Expanded(
               child: Center(
-                child: Text(
-                  page.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: isWeb ? 16 : 14,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: isWeb ? 4 : 3,
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        page.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: isWeb ? 16 : 14,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: isWeb ? 3 : 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
+                      icon: const Icon(Icons.copy_rounded),
+                      iconSize: isWeb ? 18 : 16,
+                      padding: const EdgeInsets.all(4),
+                      constraints: BoxConstraints(
+                        minWidth: isWeb ? 28 : 24,
+                        minHeight: isWeb ? 28 : 24,
+                      ),
+                      tooltip: 'Copy ${isStart ? "start" : "target"} page name',
+                    ),
+                  ],
                 ),
               ),
             ),

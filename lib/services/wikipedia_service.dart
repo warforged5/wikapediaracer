@@ -25,6 +25,7 @@ class WikipediaService {
         'format': 'json',
         'list': 'random',
         'rnnamespace': '0', // Main namespace only (articles)
+        'rnminsize': '25000', // Minimum Page Size (Bytes)
         'rnfilterredir': 'nonredirects', // No redirects
         'rnlimit': count.toString(),
         'origin': '*', // For CORS support
@@ -33,7 +34,7 @@ class WikipediaService {
       final response = await _client.get(
         uri,
         headers: {
-          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/example/wikipedia-racer)',
+          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/warforged5/wikapediaracer)',
         },
       );
 
@@ -99,7 +100,7 @@ class WikipediaService {
       final response = await _client.get(
         uri,
         headers: {
-          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/example/wikipedia-racer)',
+          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/warforged5/wikapediaracer)',
         },
       );
 
@@ -138,7 +139,7 @@ class WikipediaService {
       final response = await _client.get(
         Uri.parse('$_baseUrl/page/summary/$encodedTitle'),
         headers: {
-          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/example/wikipedia-racer)',
+          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/warforged5/wikapediaracer)',
         },
       );
 
@@ -211,7 +212,7 @@ class WikipediaService {
       final response = await _client.get(
         uri,
         headers: {
-          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/example/wikipedia-racer)',
+          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/warforged5/wikapediaracer)',
         },
       );
       

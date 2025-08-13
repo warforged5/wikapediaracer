@@ -232,9 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: _buildActionCard(
                             context,
                             icon: Icons.military_tech,
-                            title: 'Achievements',
+                            title: 'Profile',
                             subtitle: '',
-                            color: const Color(0xFFFFD700),
+                            color: const Color.fromARGB(255, 0, 132, 255),
                             onTap: () {
                               Navigator.push(
                                 context,
