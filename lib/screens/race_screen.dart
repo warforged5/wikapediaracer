@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'dart:math';
 import '../models/player.dart';
 import '../models/wikipedia_page.dart';
 import '../models/race_result.dart';
@@ -1407,32 +1408,45 @@ class _RaceScreenState extends State<RaceScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Large countdown number
-                    Container(
-                      width: isWeb ? 200 : 150,
-                      height: isWeb ? 200 : 150,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(isWeb ? 100 : 75),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                    // Large countdown number with floating animation
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(seconds: 2),
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, sin(value * 2 * pi) * 3),
+                          child: AnimatedScale(
+                            scale: _countdownSeconds <= 3 ? 1.1 : 1.0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Container(
+                              width: isWeb ? 200 : 150,
+                              height: isWeb ? 200 : 150,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(isWeb ? 100 : 75),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: _countdownSeconds <= 3 ? 0.5 : 0.3),
+                                    blurRadius: _countdownSeconds <= 3 ? 30 : 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '$_countdownSeconds',
+                                  style: TextStyle(
+                                    fontSize: isWeb ? 80 : 60,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$_countdownSeconds',
-                          style: TextStyle(
-                            fontSize: isWeb ? 80 : 60,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                     
                     SizedBox(height: isWeb ? 40 : 30),

@@ -149,17 +149,27 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                           scale: _celebrationAnimation,
                           child: Column(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Icon(
-                                  Icons.emoji_events_rounded,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                  size: 48,
-                                ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                duration: const Duration(milliseconds: 800),
+                                curve: Curves.bounceOut,
+                                builder: (context, value, child) {
+                                  return Transform.scale(
+                                    scale: 0.5 + (value * 0.5),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Icon(
+                                        Icons.emoji_events_rounded,
+                                        color: Theme.of(context).colorScheme.onPrimary,
+                                        size: 48,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               const SizedBox(height: 16),
                               Text(

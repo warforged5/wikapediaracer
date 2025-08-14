@@ -217,11 +217,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 20),
                         Expanded(
-                          child: _buildActionCard(
+                          child: _buildPillActionButton(
                             context,
                             icon: Icons.history,
                             title: 'History',
-                            subtitle: 'View stats',
                             color: Theme.of(context).colorScheme.tertiary,
                             onTap: () {
                               Navigator.push(
@@ -255,11 +254,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildActionCard(
+                          child: _buildPillActionButton(
                             context,
                             icon: Icons.military_tech,
                             title: 'Profile',
-                            subtitle: '',
                             color: Theme.of(context).colorScheme.error,
                             onTap: () {
                               Navigator.push(
@@ -378,11 +376,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildActionCard(
+                _buildPillActionButton(
                   context,
                   icon: Icons.history,
                   title: 'History',
-                  subtitle: 'View past races and stats',
                   color: Theme.of(context).colorScheme.tertiary,
                   onTap: () {
                     Navigator.push(
@@ -410,11 +407,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildActionCard(
+                _buildPillActionButton(
                   context,
                   icon: Icons.military_tech,
                   title: 'Achievements',
-                  subtitle: 'Track your progress and wins',
                   color: Theme.of(context).colorScheme.error,
                   onTap: () {
                     Navigator.push(
@@ -572,6 +568,64 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? Theme.of(context).colorScheme.onSecondaryContainer
                       : Theme.of(context).colorScheme.onPrimary,
                     size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPillActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30), // Perfect pill shape
+        gradient: LinearGradient(
+          colors: [
+            color,
+            color.withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(30),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
