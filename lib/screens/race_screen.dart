@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wikapediaracer/screens/groups_screen.dart';
 import 'dart:async';
 import 'dart:math';
 import '../models/player.dart';
@@ -957,16 +958,8 @@ class _RaceScreenState extends State<RaceScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                FilledButton(
-                                  onPressed: () => _handleCustomPageInput(_customPageController.text),
-                                  style: FilledButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isWeb ? 24 : 16,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child: const Text('Add'),
-                                ),
+                                
+                                animatedAddButton(onPressed:  () => _handleCustomPageInput(_customPageController.text))
                               ],
                             ),
                           ],

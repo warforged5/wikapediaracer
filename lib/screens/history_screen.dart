@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import '../models/race_result.dart';
 import '../models/group.dart';
 import '../services/storage_service.dart';
@@ -598,18 +599,28 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(60),
-              ),
-              child: Icon(
-                Icons.bar_chart_rounded,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.elasticOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(60),
+                    ),
+                    child: Icon(
+                      Icons.bar_chart_rounded,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
             Text(
@@ -668,230 +679,158 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Overall stats with hero design
-        Container(
-          margin: const EdgeInsets.only(bottom: 24),
-          child: Card(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.2),
-                  ],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.analytics_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Overall Statistics',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: _buildStatItem('Total Races', totalRaces.toString(), Icons.sports_score)),
-                      Expanded(child: _buildStatItem('Quick Races', quickRaces.toString(), Icons.flash_on)),
-                      Expanded(child: _buildStatItem('Group Races', groupRaces.toString(), Icons.group)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: _buildStatItem(
-                      'Average Race Time',
-                      '${(averageRaceTime / 60).toStringAsFixed(1)} min',
-                      Icons.timer,
-                      isLarge: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        if (topPlayers.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Card(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                    Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5),
-                  ],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFFFFD700),
-                              const Color(0xFFFFB400),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
+        // Overall stats with hero design and animations
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(0, 50 * (1 - value)),
+              child: Opacity(
+                opacity: value,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Card(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.2),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.leaderboard_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Top Players',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '3+ races',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  ...topPlayers.take(5).map((player) {
-                    final wins = player['wins'] as int;
-                    final races = player['races'] as int;
-                    final winRate = (wins / races * 100).toStringAsFixed(1);
-                    
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Stack(
+                          Row(
                             children: [
-                              CircleAvatar(
-                                radius: 20,
-                                backgroundColor: _getRankColor(topPlayers.indexOf(player)),
-                                child: Text(
-                                  (player['name'] as String).substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              _AnimatedStatsIcon(
+                                icon: Icons.analytics_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                delay: 300,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Overall Statistics',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              if (topPlayers.indexOf(player) < 3)
-                                Positioned(
-                                  right: -2,
-                                  top: -2,
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: _getRankBadgeColor(topPlayers.indexOf(player)),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 1),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '${topPlayers.indexOf(player) + 1}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
                             ],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  player['name'] as String,
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    _buildMiniStat('Wins', wins.toString(), Icons.emoji_events),
-                                    const SizedBox(width: 12),
-                                    _buildMiniStat('Races', races.toString(), Icons.sports_score),
-                                    const SizedBox(width: 12),
-                                    _buildMiniStat('Win Rate', '$winRate%', Icons.trending_up),
-                                  ],
-                                ),
-                              ],
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(child: _buildAnimatedStatItem('Total Races', totalRaces.toString(), Icons.sports_score, 0)),
+                              Expanded(child: _buildAnimatedStatItem('Quick Races', quickRaces.toString(), Icons.flash_on, 100)),
+                              Expanded(child: _buildAnimatedStatItem('Group Races', groupRaces.toString(), Icons.group, 200)),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Center(
+                            child: _buildAnimatedStatItem(
+                              'Average Race Time',
+                              '${(averageRaceTime / 60).toStringAsFixed(1)} min',
+                              Icons.timer,
+                              400,
+                              isLarge: true,
                             ),
                           ),
                         ],
                       ),
-                    );
-                  }),
-                ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            );
+          },
+        ),
+
+        if (topPlayers.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, 30 * (1 - value)),
+                child: Opacity(
+                  opacity: value,
+                  child: Card(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+                            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5),
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _AnimatedTrophyIcon(delay: 600),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Top Players',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '3+ races',
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          
+                          ...topPlayers.take(5).toList().asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final player = entry.value;
+                            final wins = player['wins'] as int;
+                            final races = player['races'] as int;
+                            final winRate = (wins / races * 100).toStringAsFixed(1);
+                            
+                            return _AnimatedPlayerCard(
+                              player: player,
+                              index: index,
+                              wins: wins,
+                              races: races,
+                              winRate: winRate,
+                              delay: 800 + (index * 100).toInt(),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ],
@@ -944,6 +883,86 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAnimatedStatItem(String label, String value, IconData icon, int delay, {bool isLarge = false}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 600 + delay),
+      curve: Curves.easeOutBack,
+      builder: (context, animValue, child) {
+        return Transform.scale(
+          scale: 0.5 + (animValue * 0.5),
+          child: Opacity(
+            opacity: animValue,
+            child: Container(
+              padding: EdgeInsets.all(isLarge ? 20 : 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1 * animValue),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: Duration(milliseconds: 400 + delay),
+                    curve: Curves.bounceOut,
+                    builder: (context, iconValue, child) {
+                      return Transform.scale(
+                        scale: iconValue,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            icon,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: isLarge ? 28 : 20,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: isLarge ? 12 : 8),
+                  _AnimatedNumber(
+                    value: value,
+                    style: (isLarge 
+                        ? Theme.of(context).textTheme.displaySmall 
+                        : Theme.of(context).textTheme.headlineSmall)?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    delay: delay + 300,
+                  ),
+                  SizedBox(height: isLarge ? 8 : 4),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1160,6 +1179,499 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
         elevation: isSelected ? 2 : 0,
         pressElevation: 1,
       ),
+    );
+  }
+}
+
+// Animated widget classes for enhanced statistics display
+
+class _AnimatedStatsIcon extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  final int delay;
+
+  const _AnimatedStatsIcon({
+    required this.icon,
+    required this.color,
+    required this.delay,
+  });
+
+  @override
+  State<_AnimatedStatsIcon> createState() => _AnimatedStatsIconState();
+}
+
+class _AnimatedStatsIconState extends State<_AnimatedStatsIcon>
+    with TickerProviderStateMixin {
+  late AnimationController _rotateController;
+  late AnimationController _pulseController;
+  late Animation<double> _rotateAnimation;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _rotateController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _rotateAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _rotateController,
+      curve: Curves.elasticOut,
+    ));
+
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start animations with delay
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) {
+        _rotateController.forward();
+        _pulseController.repeat(reverse: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _rotateController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_rotateAnimation, _pulseAnimation]),
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _pulseAnimation.value,
+          child: Transform.rotate(
+            angle: _rotateAnimation.value * 2 * math.pi,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: widget.color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                widget.icon,
+                color: widget.color,
+                size: 24,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedTrophyIcon extends StatefulWidget {
+  final int delay;
+
+  const _AnimatedTrophyIcon({required this.delay});
+
+  @override
+  State<_AnimatedTrophyIcon> createState() => _AnimatedTrophyIconState();
+}
+
+class _AnimatedTrophyIconState extends State<_AnimatedTrophyIcon>
+    with TickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late AnimationController _shimmerController;
+  late Animation<double> _bounceAnimation;
+  late Animation<double> _shimmerAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _bounceAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.bounceOut,
+    ));
+
+    _shimmerAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_shimmerController);
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) {
+        _bounceController.forward();
+        _shimmerController.repeat();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    _shimmerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_bounceAnimation, _shimmerAnimation]),
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _bounceAnimation.value,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.lerp(const Color(0xFFFFD700), const Color(0xFFFFE55C), _shimmerAnimation.value)!,
+                  const Color(0xFFFFB400),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.3 + (0.2 * _shimmerAnimation.value)),
+                  blurRadius: 6 + (4 * _shimmerAnimation.value),
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.leaderboard_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedNumber extends StatefulWidget {
+  final String value;
+  final TextStyle? style;
+  final int delay;
+
+  const _AnimatedNumber({
+    required this.value,
+    this.style,
+    required this.delay,
+  });
+
+  @override
+  State<_AnimatedNumber> createState() => _AnimatedNumberState();
+}
+
+class _AnimatedNumberState extends State<_AnimatedNumber>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Extract numeric value for animation
+    final numericPart = RegExp(r'\d+\.?\d*').firstMatch(widget.value)?.group(0);
+    final targetValue = double.tryParse(numericPart ?? '0') ?? 0;
+    final suffix = widget.value.replaceFirst(numericPart ?? '', '');
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final currentValue = targetValue * _animation.value;
+        final displayValue = targetValue % 1 == 0 
+            ? currentValue.toInt().toString() 
+            : currentValue.toStringAsFixed(1);
+
+        return Text(
+          '$displayValue$suffix',
+          style: widget.style,
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedPlayerCard extends StatefulWidget {
+  final Map<String, dynamic> player;
+  final int index;
+  final int wins;
+  final int races;
+  final String winRate;
+  final int delay;
+
+  const _AnimatedPlayerCard({
+    required this.player,
+    required this.index,
+    required this.wins,
+    required this.races,
+    required this.winRate,
+    required this.delay,
+  });
+
+  @override
+  State<_AnimatedPlayerCard> createState() => _AnimatedPlayerCardState();
+}
+
+class _AnimatedPlayerCardState extends State<_AnimatedPlayerCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _slideAnimation = Tween<double>(
+      begin: 50.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Color _getRankColor(int index) {
+    switch (index) {
+      case 0: return const Color(0xFFFFD700); // Gold
+      case 1: return const Color(0xFFC0C0C0); // Silver
+      case 2: return const Color(0xFFCD7F32); // Bronze
+      default: return Theme.of(context).colorScheme.primary;
+    }
+  }
+
+  Color _getRankBadgeColor(int index) {
+    switch (index) {
+      case 0: return const Color(0xFFB8860B); // Dark gold
+      case 1: return const Color(0xFF808080); // Dark silver
+      case 2: return const Color(0xFF8B4513); // Dark bronze
+      default: return Theme.of(context).colorScheme.primaryContainer;
+    }
+  }
+
+  Widget _buildMiniStat(String label, String value, IconData icon) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '$value $label',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _slideAnimation.value),
+          child: Opacity(
+            opacity: _fadeAnimation.value,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getRankColor(widget.index).withValues(alpha: 0.1 * _fadeAnimation.value),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Stack(
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: Duration(milliseconds: 400 + widget.delay),
+                        curve: Curves.bounceOut,
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: value,
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: _getRankColor(widget.index),
+                              child: Text(
+                                (widget.player['name'] as String).substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (widget.index < 3)
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(milliseconds: 600 + widget.delay),
+                          curve: Curves.elasticOut,
+                          builder: (context, value, child) {
+                            return Positioned(
+                              right: -2,
+                              top: -2,
+                              child: Transform.scale(
+                                scale: value,
+                                child: Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: _getRankBadgeColor(widget.index),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 1),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${widget.index + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.player['name'] as String,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _buildMiniStat('Wins', widget.wins.toString(), Icons.emoji_events),
+                            const SizedBox(width: 12),
+                            _buildMiniStat('Races', widget.races.toString(), Icons.sports_score),
+                            const SizedBox(width: 12),
+                            _buildMiniStat('Win Rate', '${widget.winRate}%', Icons.trending_up),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -300,6 +300,186 @@ class AppThemes {
       surfaceColor: Color(0xFFF0F8FF),
       brightness: Brightness.light,
     ),
+
+    // 11. Cotton Candy
+    AppThemeData(
+      name: 'Cotton Candy',
+      description: 'Sweet and playful',
+      icon: Icons.cake,
+      primaryColor: Color(0xFFE91E63),
+      secondaryColor: Color(0xFF9C27B0),
+      backgroundColor: Color(0xFFFCE4EC),
+      surfaceColor: Color(0xFFF8BBD9),
+      brightness: Brightness.light,
+    ),
+
+    // 12. Golden Hour
+    AppThemeData(
+      name: 'Golden Hour',
+      description: 'Warm sunset glow',
+      icon: Icons.wb_twilight,
+      primaryColor: Color(0xFFFF8F00),
+      secondaryColor: Color(0xFFFFAB00),
+      backgroundColor: Color(0xFFFFF8E1),
+      surfaceColor: Color(0xFFFFF3C4),
+      brightness: Brightness.light,
+    ),
+
+    // 13. Lavender Dreams
+    AppThemeData(
+      name: 'Lavender Dreams',
+      description: 'Soft and serene',
+      icon: Icons.local_florist,
+      primaryColor: Color(0xFF7B1FA2),
+      secondaryColor: Color(0xFFAB47BC),
+      backgroundColor: Color(0xFFF3E5F5),
+      surfaceColor: Color(0xFFE1BEE7),
+      brightness: Brightness.light,
+    ),
+
+    // 14. Electric Lime
+    AppThemeData(
+      name: 'Electric Lime',
+      description: 'Bright and energizing',
+      icon: Icons.flash_on,
+      primaryColor: Color(0xFF8BC34A),
+      secondaryColor: Color(0xFFCDDC39),
+      backgroundColor: Color(0xFFF1F8E9),
+      surfaceColor: Color(0xFFDCEDC8),
+      brightness: Brightness.light,
+    ),
+
+    // 15. Cosmic Purple
+    AppThemeData(
+      name: 'Cosmic Purple',
+      description: 'Deep space vibes',
+      icon: Icons.stars,
+      primaryColor: Color(0xFF512DA8),
+      secondaryColor: Color(0xFF7C4DFF),
+      backgroundColor: Color(0xFF0A0A0A),
+      surfaceColor: Color(0xFF1A1A2E),
+      brightness: Brightness.dark,
+    ),
+
+    // 16. Autumn Leaves
+    AppThemeData(
+      name: 'Autumn Leaves',
+      description: 'Cozy fall colors',
+      icon: Icons.park,
+      primaryColor: Color(0xFFBF360C),
+      secondaryColor: Color(0xFFFF8A65),
+      backgroundColor: Color(0xFFFBE9E7),
+      surfaceColor: Color(0xFFFFE0B2),
+      brightness: Brightness.light,
+    ),
+
+    // 17. Mint Fresh
+    AppThemeData(
+      name: 'Mint Fresh',
+      description: 'Clean and refreshing',
+      icon: Icons.eco,
+      primaryColor: Color(0xFF00796B),
+      secondaryColor: Color(0xFF4DB6AC),
+      backgroundColor: Color(0xFFE0F2F1),
+      surfaceColor: Color(0xFFB2DFDB),
+      brightness: Brightness.light,
+    ),
+
+    // 18. Rose Gold
+    AppThemeData(
+      name: 'Rose Gold',
+      description: 'Elegant and trendy',
+      icon: Icons.star,
+      primaryColor: Color(0xFFE91E63),
+      secondaryColor: Color(0xFFFF9800),
+      backgroundColor: Color(0xFFFCE4EC),
+      surfaceColor: Color(0xFFF8BBD9),
+      brightness: Brightness.light,
+    ),
+
+    // 19. Deep Ocean
+    AppThemeData(
+      name: 'Deep Ocean',
+      description: 'Mysterious depths',
+      icon: Icons.water,
+      primaryColor: Color(0xFF1A237E),
+      secondaryColor: Color(0xFF3F51B5),
+      backgroundColor: Color(0xFF0A1628),
+      surfaceColor: Color(0xFF1E2A3A),
+      brightness: Brightness.dark,
+    ),
+
+    // 20. Peachy Keen
+    AppThemeData(
+      name: 'Peachy Keen',
+      description: 'Soft and cheerful',
+      icon: Icons.sentiment_satisfied,
+      primaryColor: Color(0xFFFF7043),
+      secondaryColor: Color(0xFFFFAB91),
+      backgroundColor: Color(0xFFFFF3E0),
+      surfaceColor: Color(0xFFFFE0B2),
+      brightness: Brightness.light,
+    ),
+
+    // 21. Steel Gray
+    AppThemeData(
+      name: 'Steel Gray',
+      description: 'Modern industrial',
+      icon: Icons.build,
+      primaryColor: Color(0xFF455A64),
+      secondaryColor: Color(0xFF78909C),
+      backgroundColor: Color(0xFFECEFF1),
+      surfaceColor: Color(0xFFCFD8DC),
+      brightness: Brightness.light,
+    ),
+
+    // 22. Neon Pink
+    AppThemeData(
+      name: 'Neon Pink',
+      description: 'Bold and electric',
+      icon: Icons.whatshot,
+      primaryColor: Color(0xFFE91E63),
+      secondaryColor: Color(0xFFFF4081),
+      backgroundColor: Color(0xFF121212),
+      surfaceColor: Color(0xFF1E1E2E),
+      brightness: Brightness.dark,
+    ),
+
+    // 23. Sky Blue
+    AppThemeData(
+      name: 'Sky Blue',
+      description: 'Open and airy',
+      icon: Icons.cloud,
+      primaryColor: Color(0xFF03A9F4),
+      secondaryColor: Color(0xFF00BCD4),
+      backgroundColor: Color(0xFFE1F5FE),
+      surfaceColor: Color(0xFFB3E5FC),
+      brightness: Brightness.light,
+    ),
+
+    // 24. Midnight Purple
+    AppThemeData(
+      name: 'Midnight Purple',
+      description: 'Rich and mysterious',
+      icon: Icons.nights_stay,
+      primaryColor: Color(0xFF4A148C),
+      secondaryColor: Color(0xFF7B1FA2),
+      backgroundColor: Color(0xFF0F0F0F),
+      surfaceColor: Color(0xFF1A0E27),
+      brightness: Brightness.dark,
+    ),
+
+    // 25. Sunshine Yellow
+    AppThemeData(
+      name: 'Sunshine Yellow',
+      description: 'Bright and happy',
+      icon: Icons.sunny,
+      primaryColor: Color(0xFFFFEB3B),
+      secondaryColor: Color(0xFFFFC107),
+      backgroundColor: Color(0xFFFFFDE7),
+      surfaceColor: Color(0xFFFFF9C4),
+      brightness: Brightness.light,
+    ),
   ];
 
   static AppThemeData getThemeByName(String name) {

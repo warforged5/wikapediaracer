@@ -17,6 +17,7 @@ dependencies:
   json_annotation: ^4.8.1
   flutter_native_splash: ^2.4.6
   cupertino_icons: ^1.0.6
+  morphable_shape: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'package:morphable_shape/morphable_shape.dart';
 import '../models/group.dart';
 import '../services/storage_service.dart';
 import 'group_detail_screen.dart';
@@ -97,7 +99,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
           : _groups.isEmpty
               ? _buildEmptyState()
               : _buildGroupsList(),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: animatedAddButton(
         onPressed: () async {
           final result = await Navigator.push<bool>(
             context,
@@ -109,8 +111,6 @@ class _GroupsScreenState extends State<GroupsScreen> {
             _loadGroups();
           }
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Create Group'),
       ),
     );
   }
@@ -383,6 +383,119 @@ class _GroupsScreenState extends State<GroupsScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class animatedAddButton extends StatefulWidget {
+  final VoidCallback onPressed;
+
+  const animatedAddButton({
+    required this.onPressed,
+  });
+
+  @override
+  State<animatedAddButton> createState() => animatedAddButtonState();
+}
+
+class animatedAddButtonState extends State<animatedAddButton>
+    with TickerProviderStateMixin {
+  late AnimationController _morphController;
+  late AnimationController _bounceController;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _bounceAnimation;
+  late MorphableShapeBorderTween _shapeTween;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Create shapes for morphing - rounded square to rounded octagon
+    final roundedSquare = RectangleShapeBorder(
+      borderRadius: DynamicBorderRadius.all(
+        DynamicRadius.circular(16.toPXLength),
+      ),
+    );
+    
+    final roundedOctagon = PolygonShapeBorder(
+      sides: 8,
+      cornerRadius: 20.toPercentLength,
+      cornerStyle: CornerStyle.rounded,
+    );
+    
+    _shapeTween = MorphableShapeBorderTween(
+      begin: roundedSquare,
+      end: roundedOctagon,
+    );
+    
+    _morphController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeInOutCubic,
+    );
+    
+    _bounceAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.03, // Very small bounce
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _morphController.dispose();
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  void _handlePress() async {
+    // Start morph to octagon
+    _morphController.forward();
+    
+    // Start small bounce animation
+    _bounceController.forward().then((_) {
+      _bounceController.reverse();
+    });
+    
+    // Call the onPressed after a short delay
+    await Future.delayed(const Duration(milliseconds: 100));
+    widget.onPressed();
+    
+    // Reset after animation
+    await Future.delayed(const Duration(milliseconds: 250));
+    _morphController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_morphAnimation, _bounceAnimation]),
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _bounceAnimation.value,
+          child: FloatingActionButton(
+            onPressed: _handlePress,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            shape: _shapeTween.lerp(_morphAnimation.value),
+            child: Icon(
+              Icons.add,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
+        );
+      },
     );
   }
 }
