@@ -181,11 +181,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildPrimaryActionButton(
+                    _buildActionCard(
                       context,
                       icon: Icons.flash_on,
                       title: 'Quick Race',
                       subtitle: 'Start racing immediately',
+                      color: Theme.of(context).colorScheme.primary,
+                      isPrimary: true,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -235,11 +237,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _buildPrimaryActionButton(
+                    _buildActionCard(
                       context,
                       icon: Icons.emoji_events,
                       title: 'Tournaments',
                       subtitle: 'Compete in structured competitions',
+                      color: Theme.of(context).colorScheme.secondary,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -248,7 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
-                      isSecondary: true,
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -345,11 +347,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 20),
-                _buildPrimaryActionButton(
+                _buildActionCard(
                   context,
                   icon: Icons.flash_on,
                   title: 'Quick Race',
                   subtitle: 'Start racing immediately',
+                  color: Theme.of(context).colorScheme.primary,
+                  isPrimary: true,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -585,47 +589,73 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30), // Perfect pill shape
-        gradient: LinearGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    return SizedBox(
+      width: double.infinity,
+      height: 110,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(55), // Pill shape
+          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1.5,
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(30),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(55),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(55), // Pill shape
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
               children: [
-                Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 20,
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(30), // Circular icon container
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 28,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: color,
+                    size: 16,
                   ),
                 ),
               ],
@@ -633,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildActionCard(
