@@ -318,12 +318,12 @@ class _RaceScreenState extends State<RaceScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Icon(
                         Icons.emoji_events_rounded,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         size: isWeb ? 48 : 36,
                       ),
                     ),
@@ -331,7 +331,7 @@ class _RaceScreenState extends State<RaceScreen> {
                     Text(
                       'Round ${winner.roundNumber} Complete!',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: isWeb ? 28 : 24,
                       ),
@@ -341,7 +341,7 @@ class _RaceScreenState extends State<RaceScreen> {
                     Text(
                       '$winnerName is the winner!',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
                         fontSize: isWeb ? 20 : 18,
                       ),
                       textAlign: TextAlign.center,
@@ -350,22 +350,22 @@ class _RaceScreenState extends State<RaceScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.timer_rounded,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                             size: 18,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Time: ${_formatDuration(winner.duration)}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
@@ -426,7 +426,7 @@ class _RaceScreenState extends State<RaceScreen> {
                                         child: Text(
                                           player.name.substring(0, 1).toUpperCase(),
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: Theme.of(context).colorScheme.onPrimary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: isWeb ? 16 : 14,
                                           ),
@@ -459,7 +459,7 @@ class _RaceScreenState extends State<RaceScreen> {
                                           fontWeight: FontWeight.w600,
                                           fontSize: 14,
                                           color: isRoundWinner 
-                                              ? Colors.white
+                                              ? Theme.of(context).colorScheme.onPrimary
                                               : Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
@@ -704,7 +704,7 @@ class _RaceScreenState extends State<RaceScreen> {
                     children: [
                       Icon(
                         _phase == RacePhase.selectingStart ? Icons.play_arrow : (_phase == RacePhase.selectingEnd ? Icons.flag : Icons.timer),
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
@@ -715,10 +715,10 @@ class _RaceScreenState extends State<RaceScreen> {
                             ? 'Choose Target'
                             : 'Get Ready'
                           ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -736,17 +736,17 @@ class _RaceScreenState extends State<RaceScreen> {
   Color _getPhaseColor() {
     switch (_phase) {
       case RacePhase.selectingStart:
-        return const Color(0xFF1976D2); // Material Blue 700
+        return Theme.of(context).colorScheme.primary;
       case RacePhase.selectingEnd:
-        return const Color(0xFFFF6F00); // Material Orange 800
+        return Theme.of(context).colorScheme.secondary;
       case RacePhase.countdown:
-        return const Color(0xFFFF5722); // Material Deep Orange 600
+        return Theme.of(context).colorScheme.tertiary;
       case RacePhase.racing:
-        return const Color(0xFF388E3C); // Material Green 700
+        return Theme.of(context).colorScheme.primary;
       case RacePhase.roundComplete:
-        return const Color(0xFF7B1FA2); // Material Purple 700
+        return Theme.of(context).colorScheme.secondary;
       case RacePhase.raceComplete:
-        return const Color(0xFFFFD700); // Gold
+        return Theme.of(context).colorScheme.tertiary;
     }
   }
 
@@ -875,12 +875,12 @@ class _RaceScreenState extends State<RaceScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
                           _phase == RacePhase.selectingStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           size: isWeb ? 32 : 24,
                         ),
                       ),
@@ -892,7 +892,7 @@ class _RaceScreenState extends State<RaceScreen> {
                             Text(
                               _getPhaseTitle(),
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: isWeb ? 24 : 20,
                               ),
@@ -901,7 +901,7 @@ class _RaceScreenState extends State<RaceScreen> {
                             Text(
                               _getPhaseSubtitle(),
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
                                 fontSize: isWeb ? 16 : 14,
                               ),
                             ),
@@ -1187,7 +1187,7 @@ class _RaceScreenState extends State<RaceScreen> {
   
   // Modern, clean path card for racing
   Widget _buildSimplePathCard(WikipediaPage page, {required bool isStart}) {
-    final color = isStart ? const Color(0xFF1976D2) : const Color(0xFF388E3C);
+    final color = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary;
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
     
@@ -1286,7 +1286,7 @@ class _RaceScreenState extends State<RaceScreen> {
                           Text(
                             'Round $_currentRound of ${widget.rounds}',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
                               fontSize: isWeb ? 16 : 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1295,7 +1295,7 @@ class _RaceScreenState extends State<RaceScreen> {
                           Text(
                             _formatDuration(_currentRoundDuration),
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: isWeb ? 36 : 28,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1307,12 +1307,12 @@ class _RaceScreenState extends State<RaceScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Icon(
                           Icons.timer_rounded,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           size: isWeb ? 32 : 24,
                         ),
                       ),
@@ -1735,7 +1735,7 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildCompactPathCard(WikipediaPage page, {required bool isStart}) {
-    final color = isStart ? const Color(0xFF1976D2) : const Color(0xFF388E3C);
+    final color = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary;
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
     
@@ -1878,7 +1878,7 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildRacePathCard(WikipediaPage page, {required bool isStart}) {
-    final color = isStart ? Colors.blue : Colors.green;
+    final color = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary;
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
     
@@ -2054,7 +2054,7 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildBoldPathCard(WikipediaPage page, {required bool isStart}) {
-    final color = isStart ? const Color(0xFF1976D2) : const Color(0xFF388E3C);
+    final color = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary;
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
     
@@ -2554,9 +2554,9 @@ class _RaceScreenState extends State<RaceScreen> {
       Theme.of(context).colorScheme.primary,
       Theme.of(context).colorScheme.secondary,
       Theme.of(context).colorScheme.tertiary,
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF9C27B0), // Purple
-      const Color(0xFF009688), // Teal
+      Theme.of(context).colorScheme.error,
+      Theme.of(context).colorScheme.primaryContainer,
+      Theme.of(context).colorScheme.secondaryContainer,
     ];
     final color = colors[index % colors.length];
     
@@ -2894,9 +2894,9 @@ class _RaceScreenState extends State<RaceScreen> {
       Theme.of(context).colorScheme.primary,
       Theme.of(context).colorScheme.secondary,
       Theme.of(context).colorScheme.tertiary,
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF9C27B0), // Purple
-      const Color(0xFF009688), // Teal
+      Theme.of(context).colorScheme.error,
+      Theme.of(context).colorScheme.primaryContainer,
+      Theme.of(context).colorScheme.secondaryContainer,
     ];
     final color = colors[index % colors.length];
     

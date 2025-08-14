@@ -29,23 +29,51 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wikipedia Racer'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.speed,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Wikipedia Racer'),
+          ],
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.palette),
-            tooltip: 'Change Theme',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ThemeSelectorScreen(
-                    onThemeChanged: widget.onThemeChanged,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.palette_rounded,
+                color: Theme.of(context).colorScheme.onTertiaryContainer,
+              ),
+              tooltip: 'Change Theme',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ThemeSelectorScreen(
+                      onThemeChanged: widget.onThemeChanged,
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -91,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'Challenge your friends to race through Wikipedia pages. Start from one article and navigate to another as fast as you can!',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         height: 1.4,
                       ),
                     ),
@@ -153,13 +181,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildActionCard(
+                    _buildPrimaryActionButton(
                       context,
                       icon: Icons.flash_on,
                       title: 'Quick Race',
                       subtitle: 'Start racing immediately',
-                      color: Theme.of(context).colorScheme.primary,
-                      isPrimary: true,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -210,12 +236,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _buildActionCard(
+                    _buildPrimaryActionButton(
                       context,
                       icon: Icons.emoji_events,
                       title: 'Tournaments',
                       subtitle: 'Compete in structured competitions',
-                      color: Theme.of(context).colorScheme.secondary,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -224,6 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
+                      isSecondary: true,
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -234,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icons.military_tech,
                             title: 'Profile',
                             subtitle: '',
-                            color: const Color.fromARGB(255, 0, 132, 255),
+                            color: Theme.of(context).colorScheme.error,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -252,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icons.palette,
                             title: 'Themes',
                             subtitle: '',
-                            color: Colors.purple,
+                            color: Theme.of(context).colorScheme.tertiary,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -303,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Race through Wikipedia pages with friends',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -321,13 +347,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 20),
-                _buildActionCard(
+                _buildPrimaryActionButton(
                   context,
                   icon: Icons.flash_on,
                   title: 'Quick Race',
                   subtitle: 'Start racing immediately',
-                  color: Theme.of(context).colorScheme.primary,
-                  isPrimary: true,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -391,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.military_tech,
                   title: 'Achievements',
                   subtitle: 'Track your progress and wins',
-                  color: const Color(0xFFFFD700),
+                  color: Theme.of(context).colorScheme.error,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -407,7 +431,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.palette,
                   title: 'Themes',
                   
-                  color: Colors.purple,subtitle: 'Customize your experience',
+                  subtitle: 'Customize your experience',
+                  color: Theme.of(context).colorScheme.tertiary,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -433,11 +458,127 @@ class _HomeScreenState extends State<HomeScreen> {
             'Create groups to track wins and losses, or jump into a quick race!',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPrimaryActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isSecondary = false,
+  }) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    
+    return Container(
+      width: double.infinity,
+      height: 80,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(40), // Pill shape
+        gradient: LinearGradient(
+          colors: isSecondary 
+            ? [
+                Theme.of(context).colorScheme.secondaryContainer,
+                Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.8),
+              ]
+            : [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+              ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSecondary 
+              ? Theme.of(context).colorScheme.secondaryContainer
+              : Theme.of(context).colorScheme.primary).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(40),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isWeb ? 32 : 24, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: (isSecondary 
+                      ? Theme.of(context).colorScheme.onSecondaryContainer
+                      : Theme.of(context).colorScheme.onPrimary).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSecondary 
+                      ? Theme.of(context).colorScheme.onSecondaryContainer
+                      : Theme.of(context).colorScheme.onPrimary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isSecondary 
+                            ? Theme.of(context).colorScheme.onSecondaryContainer
+                            : Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: (isSecondary 
+                            ? Theme.of(context).colorScheme.onSecondaryContainer
+                            : Theme.of(context).colorScheme.onPrimary).withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (isSecondary 
+                      ? Theme.of(context).colorScheme.onSecondaryContainer
+                      : Theme.of(context).colorScheme.onPrimary).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: isSecondary 
+                      ? Theme.of(context).colorScheme.onSecondaryContainer
+                      : Theme.of(context).colorScheme.onPrimary,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -454,34 +595,34 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       height: isPrimary ? 120 : 110,
       child: Card(
+        elevation: 2,
+        shadowColor: color.withValues(alpha: 0.1),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: isPrimary ? color : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              color: Theme.of(context).colorScheme.surface,
               border: Border.all(
-                color: isPrimary ? Colors.transparent : color.withValues(alpha: 0.3),
-                width: 1,
+                color: color.withValues(alpha: 0.2),
+                width: 1.5,
               ),
             ),
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
                 Container(
-                  width: isPrimary ? 72 : 68,
-                  height: isPrimary ? 72 : 68,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    color: isPrimary 
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     icon,
-                    color: isPrimary ? Colors.white : color,
-                    size: isPrimary ? 36 : 34,
+                    color: color,
+                    size: 28,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -492,41 +633,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         title,
-                        style: (isPrimary 
-                            ? Theme.of(context).textTheme.titleLarge
-                            : Theme.of(context).textTheme.titleMedium)?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: isPrimary ? Colors.white : null,
-                          letterSpacing: 0,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isPrimary 
-                              ? Colors.white.withValues(alpha: 0.9)
-                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 0.25,
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: isPrimary 
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.arrow_forward_rounded,
-                    color: isPrimary 
-                        ? Colors.white.withValues(alpha: 0.9)
-                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: color,
                     size: 16,
                   ),
                 ),

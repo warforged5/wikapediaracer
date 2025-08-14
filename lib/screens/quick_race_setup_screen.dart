@@ -231,9 +231,10 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                       
                       return GestureDetector(
                         onTap: () => setState(() => _rounds = rounds),
-                        child: Container(
-                          width: 48,
-                          height: 48,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Theme.of(context).colorScheme.primary
@@ -241,28 +242,36 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                             border: Border.all(
                               color: isSelected
                                   ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              width: 2,
+                                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+                              width: isSelected ? 3 : 2,
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            shape: BoxShape.circle,
                             boxShadow: isSelected ? [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                                blurRadius: 8,
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                                spreadRadius: 1,
+                              ),
+                            ] : [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                                blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
-                            ] : null,
+                            ],
                           ),
                           child: Center(
-                            child: Text(
-                              '$rounds',
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
                               style: TextStyle(
                                 color: isSelected
                                     ? Theme.of(context).colorScheme.onPrimary
                                     : Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: isSelected ? 18 : 16,
                               ),
+                              child: Text('$rounds'),
                             ),
                           ),
                         ),
@@ -288,26 +297,66 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
           const SizedBox(height: 32),
 
           // Start Race Button
-          SizedBox(
-            height: 56,
-            child: FilledButton.icon(
-              onPressed: _isLoading ? null : _startRace,
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.play_arrow, size: 24),
-              label: Text(
-                _isLoading ? 'Starting Race...' : 'Start Race',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          Container(
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32), // Pill shape
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 0,
                 ),
-                elevation: 2,
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _isLoading ? null : _startRace,
+                borderRadius: BorderRadius.circular(32),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isLoading)
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.play_arrow,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          size: 28,
+                        ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _isLoading ? 'Starting Race...' : 'Start Race',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

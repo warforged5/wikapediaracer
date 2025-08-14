@@ -135,7 +135,7 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                               child: Text(
                                 'Race Complete',
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
@@ -152,12 +152,12 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.emoji_events_rounded,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   size: 48,
                                 ),
                               ),
@@ -166,7 +166,7 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                                 '${winner.name} Wins!',
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -174,14 +174,14 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                               Text(
                                 'Total Time: ${_formatDuration(widget.result.totalDuration)}',
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '${widget.result.rounds.length} rounds completed',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
