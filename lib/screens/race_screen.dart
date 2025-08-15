@@ -196,60 +196,9 @@ class _RaceScreenState extends State<RaceScreen> {
   void _showCountdownSettings() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.timer_rounded,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text('Countdown Duration'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Choose how many seconds to countdown before starting the race:',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [3, 5, 8, 10, 15].map((duration) {
-                final isSelected = _countdownDuration == duration;
-                return FilterChip(
-                  selected: isSelected,
-                  label: Text('$duration seconds'),
-                  onSelected: (selected) {
-                    if (selected) {
-                      _setCountdownDuration(duration);
-                    }
-                  },
-                  selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                  checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+      builder: (context) => _CountdownSettingsDialog(
+        currentDuration: _countdownDuration,
+        onDurationChanged: _setCountdownDuration,
       ),
     );
   }
@@ -2966,6 +2915,161 @@ class _RaceScreenState extends State<RaceScreen> {
                 size: 24,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CountdownSettingsDialog extends StatefulWidget {
+  final int currentDuration;
+  final Function(int) onDurationChanged;
+
+  const _CountdownSettingsDialog({
+    required this.currentDuration,
+    required this.onDurationChanged,
+  });
+
+  @override
+  State<_CountdownSettingsDialog> createState() => _CountdownSettingsDialogState();
+}
+
+class _CountdownSettingsDialogState extends State<_CountdownSettingsDialog> {
+  late int _selectedDuration;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDuration = widget.currentDuration;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.timer_rounded,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text('Countdown Duration'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Choose how many seconds to countdown before starting the race:',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          _buildSegmentedButtons(),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSegmentedButtons() {
+    const durations = [3, 5, 8, 10, 15];
+    
+    return Row(
+      children: durations.asMap().entries.map((entry) {
+        final index = entry.key;
+        final duration = entry.value;
+        final isFirst = index == 0;
+        final isLast = index == durations.length - 1;
+        final isSelected = _selectedDuration == duration;
+        
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: isLast ? 0 : 2,
+            ),
+            child: _buildSegmentButton(
+              duration: duration,
+              isSelected: isSelected,
+              isFirst: isFirst,
+              isLast: isLast,
+              onTap: () {
+                setState(() {
+                  _selectedDuration = duration;
+                });
+                widget.onDurationChanged(duration);
+              },
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSegmentButton({
+    required int duration,
+    required bool isSelected,
+    required bool isFirst,
+    required bool isLast,
+    required VoidCallback onTap,
+  }) {
+    // When selected, use more rounded corners on both sides
+    final leftRadius = isSelected 
+        ? const Radius.circular(16) 
+        : (isFirst ? const Radius.circular(12) : const Radius.circular(4));
+    final rightRadius = isSelected 
+        ? const Radius.circular(16) 
+        : (isLast ? const Radius.circular(12) : const Radius.circular(4));
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.horizontal(
+          left: leftRadius,
+          right: rightRadius,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Theme.of(context).colorScheme.surface,
+            border: Border.all(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.horizontal(
+              left: leftRadius,
+              right: rightRadius,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              '${duration}s',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimaryContainer
+                    : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
         ),
       ),
