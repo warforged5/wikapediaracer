@@ -95,6 +95,8 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Future<void> _loadRandomPages() async {
+    if (_isLoading) return; // Prevent concurrent calls
+    
     setState(() {
       _isLoading = true;
       _loadingMessage = _phase == RacePhase.selectingStart 
@@ -103,16 +105,21 @@ class _RaceScreenState extends State<RaceScreen> {
     });
 
     try {
-      final pages = await WikipediaService.instance.getRandomPages(10);
-      setState(() {
-        _currentPageOptions = pages;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      // Add timeout to prevent hanging
+      final pages = await WikipediaService.instance.getRandomPages(10)
+          .timeout(const Duration(seconds: 10));
+      
       if (mounted) {
+        setState(() {
+          _currentPageOptions = pages;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading pages: $e')),
         );
@@ -127,7 +134,10 @@ class _RaceScreenState extends State<RaceScreen> {
         _startPage = page;
         _phase = RacePhase.selectingEnd;
       });
-      _loadRandomPages();
+      // Only load random pages if we're not already loading and it's not a custom page issue
+      if (!_isLoading) {
+        _loadRandomPages();
+      }
     } else if (_phase == RacePhase.selectingEnd) {
       setState(() {
         _endPage = page;

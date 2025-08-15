@@ -401,40 +401,37 @@ class animatedAddButton extends StatefulWidget {
 class animatedAddButtonState extends State<animatedAddButton>
     with TickerProviderStateMixin {
   late AnimationController _morphController;
-  late AnimationController _bounceController;
+  late AnimationController _spinController;
   late Animation<double> _morphAnimation;
-  late Animation<double> _bounceAnimation;
+  late Animation<double> _spinAnimation;
   late MorphableShapeBorderTween _shapeTween;
   
   @override
   void initState() {
     super.initState();
     
-    // Create shapes for morphing - rounded square to rounded octagon
-    final roundedSquare = RectangleShapeBorder(
-      borderRadius: DynamicBorderRadius.all(
-        DynamicRadius.circular(16.toPXLength),
-      ),
-    );
+    // Create shapes for morphing - circle to rounded octagon
+    final circle = CircleShapeBorder();
     
     final roundedOctagon = PolygonShapeBorder(
       sides: 8,
-      cornerRadius: 20.toPercentLength,
+      cornerRadius: 25.toPercentLength,
       cornerStyle: CornerStyle.rounded,
     );
     
     _shapeTween = MorphableShapeBorderTween(
-      begin: roundedSquare,
+      begin: circle,
       end: roundedOctagon,
+      method: MorphMethod.auto,
     );
     
     _morphController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     
-    _bounceController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+    _spinController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     
@@ -443,47 +440,52 @@ class animatedAddButtonState extends State<animatedAddButton>
       curve: Curves.easeInOutCubic,
     );
     
-    _bounceAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.03, // Very small bounce
+    _spinAnimation = Tween<double>(
+      begin: 0.0,
+      end: 2.0, // 2 full rotations (720 degrees)
     ).animate(CurvedAnimation(
-      parent: _bounceController,
-      curve: Curves.easeInOut,
+      parent: _spinController,
+      curve: Curves.easeInOutCubic,
     ));
   }
 
   @override
   void dispose() {
     _morphController.dispose();
-    _bounceController.dispose();
+    _spinController.dispose();
     super.dispose();
   }
 
   void _handlePress() async {
-    // Start morph to octagon
-    _morphController.forward();
+    // Start spinning and morphing simultaneously
+    final animationFutures = [
+      _spinController.forward(),
+      _morphController.forward(),
+    ];
     
-    // Start small bounce animation
-    _bounceController.forward().then((_) {
-      _bounceController.reverse();
-    });
-    
-    // Call the onPressed after a short delay
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Call the onPressed immediately as animations start
     widget.onPressed();
     
-    // Reset after animation
-    await Future.delayed(const Duration(milliseconds: 250));
-    _morphController.reverse();
+    // Wait for animations to complete
+    await Future.wait(animationFutures);
+    
+    // Keep the shape changed for a moment before reverting
+    await Future.delayed(const Duration(milliseconds: 400));
+    
+    // Reverse both animations simultaneously
+    await Future.wait([
+      _morphController.reverse(),
+      _spinController.reverse(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_morphAnimation, _bounceAnimation]),
+      animation: Listenable.merge([_morphAnimation, _spinAnimation]),
       builder: (context, child) {
-        return Transform.scale(
-          scale: _bounceAnimation.value,
+        return Transform.rotate(
+          angle: _spinAnimation.value * math.pi,
           child: FloatingActionButton(
             onPressed: _handlePress,
             backgroundColor: Theme.of(context).colorScheme.primary,

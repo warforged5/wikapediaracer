@@ -560,10 +560,10 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
 
   Widget _buildDetailStat(String label, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -571,19 +571,19 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
           Icon(
             icon,
             color: Theme.of(context).colorScheme.primary,
-            size: 20,
+            size: 16,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
@@ -601,37 +601,50 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
           children: [
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.elasticOut,
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.bounceOut,
               builder: (context, value, child) {
                 return Transform.scale(
                   scale: value,
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 140,
+                    height: 140,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(60),
+                      gradient: RadialGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(70),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      Icons.bar_chart_rounded,
-                      size: 64,
+                      Icons.insights,
+                      size: 72,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               'No Statistics Yet',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
-              'Complete some races to see your performance data',
+              'Race through Wikipedia to unlock amazing stats and insights!',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -679,78 +692,15 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Overall stats with hero design and animations
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, child) {
-            return Transform.translate(
-              offset: Offset(0, 50 * (1 - value)),
-              child: Opacity(
-                opacity: value,
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  child: Card(
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.2),
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _AnimatedStatsIcon(
-                                icon: Icons.analytics_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                delay: 300,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Overall Statistics',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(child: _buildAnimatedStatItem('Total Races', totalRaces.toString(), Icons.sports_score, 0)),
-                              Expanded(child: _buildAnimatedStatItem('Quick Races', quickRaces.toString(), Icons.flash_on, 100)),
-                              Expanded(child: _buildAnimatedStatItem('Group Races', groupRaces.toString(), Icons.group, 200)),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Center(
-                            child: _buildAnimatedStatItem(
-                              'Average Race Time',
-                              '${(averageRaceTime / 60).toStringAsFixed(1)} min',
-                              Icons.timer,
-                              400,
-                              isLarge: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+        // Overview card
+        _buildOverviewCard(totalRaces, quickRaces, groupRaces, averageRaceTime),
+        
+        const SizedBox(height: 16),
+        
+        // Stats grid
+        _buildStatsGrid(totalRaces, quickRaces, groupRaces, averageRaceTime, context),
+        
+        const SizedBox(height: 16),
 
         if (topPlayers.isNotEmpty) ...[
           const SizedBox(height: 16),
@@ -1675,3 +1625,238 @@ class _AnimatedPlayerCardState extends State<_AnimatedPlayerCard>
     );
   }
 }
+
+  Widget _buildOverviewCard(int totalRaces, int quickRaces, int groupRaces, double averageRaceTime) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.analytics_rounded,
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Racing Statistics',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Your Wikipedia racing performance',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.emoji_events,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '$totalRaces races completed',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatsGrid(int totalRaces, int quickRaces, int groupRaces, double averageRaceTime, context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.5,
+      children: [
+        _buildStatCard(
+          icon: Icons.flash_on,
+          title: 'Quick Races',
+          value: quickRaces.toString(),
+          color: Theme.of(context).colorScheme.primary,
+          delay: 200,
+        ),
+        _buildStatCard(
+          icon: Icons.group,
+          title: 'Group Races',
+          value: groupRaces.toString(),
+          color: Theme.of(context).colorScheme.secondary,
+          delay: 300,
+        ),
+        _buildStatCard(
+          icon: Icons.timer,
+          title: 'Avg Time',
+          value: '${(averageRaceTime / 60).toStringAsFixed(1)}m',
+          color: Theme.of(context).colorScheme.tertiary,
+          delay: 400,
+        ),
+        _buildStatCard(
+          icon: Icons.speed,
+          title: 'Success Rate',
+          value: totalRaces > 0 ? '${((quickRaces + groupRaces) / totalRaces * 100).toInt()}%' : '0%',
+          color: Theme.of(context).colorScheme.error,
+          delay: 500,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+    required int delay,
+  }) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: delay + 400),
+      curve: Curves.easeOutCubic,
+      builder: (context, animValue, child) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - animValue)),
+          child: Opacity(
+            opacity: animValue,
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: color.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: 18,
+                      ),
+                    ),
+                    const Spacer(),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: Duration(milliseconds: delay + 600),
+                      curve: Curves.easeOut,
+                      builder: (context, numberValue, child) {
+                        // Extract numeric value for animation
+                        final numericPart = RegExp(r'\d+\.?\d*').firstMatch(value)?.group(0);
+                        final targetValue = double.tryParse(numericPart ?? '0') ?? 0;
+                        final suffix = value.replaceFirst(numericPart ?? '', '');
+                        final currentValue = targetValue * numberValue;
+                        final displayValue = targetValue % 1 == 0 
+                            ? currentValue.toInt().toString() 
+                            : currentValue.toStringAsFixed(1);
+
+                        return Text(
+                          '$displayValue$suffix',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
