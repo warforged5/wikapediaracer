@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wikapediaracer/screens/groups_screen.dart';
+import 'package:morphable_shape/morphable_shape.dart';
 import 'dart:async';
 import 'dart:math';
 import '../models/player.dart';
@@ -1360,45 +1361,10 @@ class _RaceScreenState extends State<RaceScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Large countdown number with floating animation
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      duration: const Duration(seconds: 2),
-                      builder: (context, value, child) {
-                        return Transform.translate(
-                          offset: Offset(0, sin(value * 2 * pi) * 3),
-                          child: AnimatedScale(
-                            scale: _countdownSeconds <= 3 ? 1.1 : 1.0,
-                            duration: const Duration(milliseconds: 300),
-                            child: Container(
-                              width: isWeb ? 200 : 150,
-                              height: isWeb ? 200 : 150,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(isWeb ? 100 : 75),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: _countdownSeconds <= 3 ? 0.5 : 0.3),
-                                    blurRadius: _countdownSeconds <= 3 ? 30 : 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '$_countdownSeconds',
-                                  style: TextStyle(
-                                    fontSize: isWeb ? 80 : 60,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onPrimary,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                    // Animated countdown timer with spinning and morphing
+                    _AnimatedCountdownTimer(
+                      countdownSeconds: _countdownSeconds,
+                      isWeb: isWeb,
                     ),
                     
                     SizedBox(height: isWeb ? 40 : 30),
@@ -3043,12 +3009,14 @@ class _CountdownSettingsDialogState extends State<_CountdownSettingsDialog> {
           left: leftRadius,
           right: rightRadius,
         ),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surface,
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.surfaceContainerHigh,
             border: Border.all(
               color: isSelected
                   ? Theme.of(context).colorScheme.primary
@@ -3059,20 +3027,203 @@ class _CountdownSettingsDialogState extends State<_CountdownSettingsDialog> {
               left: leftRadius,
               right: rightRadius,
             ),
+            boxShadow: isSelected ? [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ] : null,
           ),
           child: Center(
-            child: Text(
-              '${duration}s',
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
-                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                    : Theme.of(context).colorScheme.onSurface,
-              ),
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+              ) ?? const TextStyle(),
+              child: Text('${duration}s'),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedCountdownTimer extends StatefulWidget {
+  final int countdownSeconds;
+  final bool isWeb;
+
+  const _AnimatedCountdownTimer({
+    required this.countdownSeconds,
+    required this.isWeb,
+  });
+
+  @override
+  State<_AnimatedCountdownTimer> createState() => _AnimatedCountdownTimerState();
+}
+
+class _AnimatedCountdownTimerState extends State<_AnimatedCountdownTimer>
+    with TickerProviderStateMixin {
+  late AnimationController _spinController;
+  late AnimationController _morphController;
+  late AnimationController _floatController;
+  late Animation<double> _spinAnimation;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _floatAnimation;
+  late MorphableShapeBorderTween _shapeTween;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Create shapes for morphing - cycle through different shapes
+    final shapes = [
+      CircleShapeBorder(),
+      PolygonShapeBorder(sides: 6, cornerRadius: 15.toPercentLength, cornerStyle: CornerStyle.rounded),
+      RectangleShapeBorder(borderRadius: DynamicBorderRadius.all(DynamicRadius.circular(20.toPXLength))),
+      PolygonShapeBorder(sides: 8, cornerRadius: 25.toPercentLength, cornerStyle: CornerStyle.rounded),
+      PolygonShapeBorder(sides: 5, cornerRadius: 20.toPercentLength, cornerStyle: CornerStyle.rounded),
+    ];
+
+    _shapeTween = MorphableShapeBorderTween(
+      begin: shapes[0],
+      end: shapes[1],
+      method: MorphMethod.auto,
+    );
+
+    // Continuous spinning animation
+    _spinController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    );
+
+    // Shape morphing animation
+    _morphController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    // Floating animation
+    _floatController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _spinAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _spinController,
+      curve: Curves.linear,
+    ));
+
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeInOut,
+    );
+
+    _floatAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _floatController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start continuous animations
+    _spinController.repeat();
+    _floatController.repeat(reverse: true);
+    
+    // Start morphing cycle
+    _startMorphCycle(shapes);
+  }
+
+  void _startMorphCycle(List<ShapeBorder> shapes) {
+    int currentIndex = 0;
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      final nextIndex = (currentIndex + 1) % shapes.length;
+      setState(() {
+        _shapeTween = MorphableShapeBorderTween(
+          begin: shapes[currentIndex] as MorphableShapeBorder,
+          end: shapes[nextIndex] as MorphableShapeBorder,
+          method: MorphMethod.auto,
+        );
+      });
+      
+      _morphController.reset();
+      _morphController.forward();
+      currentIndex = nextIndex;
+    });
+  }
+
+  @override
+  void dispose() {
+    _spinController.dispose();
+    _morphController.dispose();
+    _floatController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = widget.isWeb ? 200.0 : 150.0;
+    final fontSize = widget.isWeb ? 80.0 : 60.0;
+    
+    return AnimatedBuilder(
+      animation: Listenable.merge([_spinAnimation, _morphAnimation, _floatAnimation]),
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, sin(_floatAnimation.value * 2 * pi) * 5),
+          child: Transform.rotate(
+            angle: _spinAnimation.value * 2 * pi,
+            child: AnimatedScale(
+              scale: widget.countdownSeconds <= 3 ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              child: Container(
+                width: size,
+                height: size,
+                decoration: ShapeDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: _shapeTween.lerp(_morphAnimation.value)!,
+                  shadows: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withValues(
+                        alpha: widget.countdownSeconds <= 3 ? 0.5 : 0.3
+                      ),
+                      blurRadius: widget.countdownSeconds <= 3 ? 30 : 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Transform.rotate(
+                    angle: -_spinAnimation.value * 2 * pi, // Counter-rotate text
+                    child: Text(
+                      '${widget.countdownSeconds}',
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
