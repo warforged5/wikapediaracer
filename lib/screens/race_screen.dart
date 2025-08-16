@@ -57,6 +57,8 @@ class _RaceScreenState extends State<RaceScreen> {
   final List<RaceRound> _completedRounds = [];
   final Map<String, int> _playerScores = {};
   final TextEditingController _customPageController = TextEditingController();
+  int _refreshCount = 0;
+  static const int _maxRefreshes = 3;
 
   @override
   void initState() {
@@ -128,12 +130,39 @@ class _RaceScreenState extends State<RaceScreen> {
     }
   }
 
+  Future<void> _refreshPages() async {
+    if (_refreshCount >= _maxRefreshes) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Maximum refresh limit reached (3/3). Use custom page option if needed.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    
+    _refreshCount++;
+    await _loadRandomPages();
+    
+    if (mounted) {
+      final remaining = _maxRefreshes - _refreshCount;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Pages refreshed! ${remaining > 0 ? "$remaining refreshes remaining" : "No more refreshes available"}'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _selectPage(WikipediaPage page) {
     
     if (_phase == RacePhase.selectingStart) {
       setState(() {
         _startPage = page;
         _phase = RacePhase.selectingEnd;
+        _refreshCount = 0; // Reset refresh count for end page selection
       });
       // Only load random pages if we're not already loading and it's not a custom page issue
       if (!_isLoading) {
@@ -459,6 +488,7 @@ class _RaceScreenState extends State<RaceScreen> {
                               _startPage = null;
                             }
                             _endPage = null;
+                            _refreshCount = 0; // Reset refresh count for new round
                           });
                           _loadRandomPages();
                         },
@@ -947,9 +977,11 @@ class _RaceScreenState extends State<RaceScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: _loadRandomPages,
+                                  onPressed: _refreshCount >= _maxRefreshes ? null : _refreshPages,
                                   icon: const Icon(Icons.refresh_rounded),
-                                  tooltip: 'Get new suggestions',
+                                  tooltip: _refreshCount >= _maxRefreshes 
+                                      ? 'Maximum refreshes reached (3/3)'
+                                      : 'Get new suggestions (${_maxRefreshes - _refreshCount} left)',
                                 ),
                               ],
                             ),
@@ -2875,11 +2907,6 @@ class _RaceScreenState extends State<RaceScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Icon(
-                Icons.touch_app_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
             ],
           ),
         ),
@@ -3085,9 +3112,16 @@ class _AnimatedCountdownTimerState extends State<_AnimatedCountdownTimer>
     final shapes = [
       CircleShapeBorder(),
       PolygonShapeBorder(sides: 6, cornerRadius: 15.toPercentLength, cornerStyle: CornerStyle.rounded),
-      RectangleShapeBorder(borderRadius: DynamicBorderRadius.all(DynamicRadius.circular(20.toPXLength))),
+      StarShapeBorder(
+      corners: 5,
+      inset: 50.toPercentLength,
+      cornerRadius: 30.toPXLength,
+      cornerStyle: CornerStyle.rounded,
+      insetRadius: 0.toPXLength,
+      insetStyle: CornerStyle.rounded
+      ),
       PolygonShapeBorder(sides: 8, cornerRadius: 25.toPercentLength, cornerStyle: CornerStyle.rounded),
-      PolygonShapeBorder(sides: 5, cornerRadius: 20.toPercentLength, cornerStyle: CornerStyle.rounded),
+      
     ];
 
     _shapeTween = MorphableShapeBorderTween(

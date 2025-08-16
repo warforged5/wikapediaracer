@@ -215,41 +215,165 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
                     child: Column(
                       children: [
                         // Share button
-                        SizedBox(
+                        Container(
+                          height: 56,
                           width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _shareResults(),
-                            icon: const Icon(Icons.share_rounded),
-                            label: const Text('Share Results'),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(28),
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).colorScheme.secondary,
+                                Theme.of(context).colorScheme.secondary.withValues(alpha: 0.9),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _shareResults(),
+                              borderRadius: BorderRadius.circular(28),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.share_rounded,
+                                      color: Theme.of(context).colorScheme.onSecondary,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Share Results',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         // Navigation buttons
                         Row(
                           children: [
                             Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                                icon: const Icon(Icons.home_rounded),
-                                label: const Text('Home'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                              child: Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(28),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Theme.of(context).colorScheme.surfaceContainer,
+                                      Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.9),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.home_rounded,
+                                            color: Theme.of(context).colorScheme.onSurface,
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Home',
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () {
-                                  Navigator.of(context).popUntil((route) => route.isFirst);
-                                },
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: const Text('Race Again'),
-                                style: FilledButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: isWeb ? 16 : 12),
+                              child: Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(28),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Theme.of(context).colorScheme.primary,
+                                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.of(context).popUntil((route) => route.isFirst);
+                                    },
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.refresh_rounded,
+                                            color: Theme.of(context).colorScheme.onPrimary,
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Race Again',
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onPrimary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),

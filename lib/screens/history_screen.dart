@@ -689,11 +689,14 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
         .toList()
         ..sort((a, b) => (b['wins'] as int).compareTo(a['wins'] as int));
 
-    return ListView(
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 800;
+    
+    final listView = ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // Overview card
-        _buildOverviewCard(totalRaces, quickRaces, groupRaces, averageRaceTime),
+        _buildOverviewCard(totalRaces, quickRaces, groupRaces, averageRaceTime, context),
         
         const SizedBox(height: 16),
         
@@ -785,6 +788,18 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
         ],
       ],
     );
+    
+    // On larger screens, center the entire stats view with responsive padding
+    if (isLargeScreen) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: listView,
+        ),
+      );
+    }
+    
+    return listView;
   }
 
   Widget _buildStatItem(String label, String value, IconData icon, {bool isLarge = false}) {
@@ -1626,8 +1641,11 @@ class _AnimatedPlayerCardState extends State<_AnimatedPlayerCard>
   }
 }
 
-  Widget _buildOverviewCard(int totalRaces, int quickRaces, int groupRaces, double averageRaceTime) {
-    return TweenAnimationBuilder<double>(
+  Widget _buildOverviewCard(int totalRaces, int quickRaces, int groupRaces, double averageRaceTime, context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 800;
+    
+    final cardWidget = TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeOutCubic,
@@ -1729,16 +1747,32 @@ class _AnimatedPlayerCardState extends State<_AnimatedPlayerCard>
         );
       },
     );
+    
+    // On larger screens, center the card with a maximum width
+    if (isLargeScreen) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: cardWidget,
+        ),
+      );
+    }
+    
+    return cardWidget;
   }
 
   Widget _buildStatsGrid(int totalRaces, int quickRaces, int groupRaces, double averageRaceTime, context) {
-    return GridView.count(
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 800;
+    
+    // On larger screens, limit the width and use more columns
+    final gridWidget = GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
+      crossAxisCount: isLargeScreen ? 4 : 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.5,
+      childAspectRatio: isLargeScreen ? 1.2 : 1.5,
       children: [
         _buildStatCard(
           icon: Icons.flash_on,
@@ -1770,6 +1804,18 @@ class _AnimatedPlayerCardState extends State<_AnimatedPlayerCard>
         ),
       ],
     );
+    
+    // On larger screens, center the grid with a maximum width
+    if (isLargeScreen) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: gridWidget,
+        ),
+      );
+    }
+    
+    return gridWidget;
   }
 
   Widget _buildStatCard({
