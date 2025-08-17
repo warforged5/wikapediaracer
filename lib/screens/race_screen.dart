@@ -1321,11 +1321,139 @@ class _RaceScreenState extends State<RaceScreen> {
     );
   }
 
+  Widget _buildSimpleCountdownPreview(bool isWeb) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 600;
+    
+    return Container(
+      constraints: BoxConstraints(maxWidth: isWeb ? 500 : 400),
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: EdgeInsets.all(isWeb ? 20 : 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Start page - simplified
+              _buildSimplePagePreview(_startPage!, isStart: true, isWeb: isWeb, isCompact: isCompact),
+              
+              SizedBox(height: isWeb ? 16 : 12),
+              
+              // Arrow indicator
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isWeb ? 16 : 12, 
+                  vertical: isWeb ? 8 : 6
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.arrow_downward_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: isWeb ? 18 : 16,
+                    ),
+                    SizedBox(width: isWeb ? 6 : 4),
+                    Text(
+                      'RACE TO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: isWeb ? 12 : 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: isWeb ? 16 : 12),
+              
+              // Target page - simplified
+              _buildSimplePagePreview(_endPage!, isStart: false, isWeb: isWeb, isCompact: isCompact),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimplePagePreview(WikipediaPage page, {required bool isStart, required bool isWeb, required bool isCompact}) {
+    final primaryColor = isStart 
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.tertiary;
+    final containerColor = isStart 
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.tertiaryContainer;
+    final onContainerColor = isStart 
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onTertiaryContainer;
+    
+    return Row(
+      children: [
+        // Icon
+        Container(
+          padding: EdgeInsets.all(isWeb ? 10 : 8),
+          decoration: BoxDecoration(
+            color: containerColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+            color: onContainerColor,
+            size: isWeb ? 20 : 18,
+          ),
+        ),
+        
+        SizedBox(width: isWeb ? 12 : 10),
+        
+        // Label
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isWeb ? 8 : 6, 
+            vertical: isWeb ? 4 : 3
+          ),
+          decoration: BoxDecoration(
+            color: primaryColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            isStart ? 'START' : 'TARGET',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: isWeb ? 10 : 9,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        
+        SizedBox(width: isWeb ? 12 : 10),
+        
+        // Page title
+        Expanded(
+          child: Text(
+            page.title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: isWeb ? 14 : 13,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            maxLines: isCompact ? 1 : 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCountdownView() {
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
-    final isTablet = screenSize.width > 600 && screenSize.width <= 900;
-    
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
@@ -1402,20 +1530,8 @@ class _RaceScreenState extends State<RaceScreen> {
                     
                     SizedBox(height: isWeb ? 40 : 30),
                     
-                    // Race path display
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final screenWidth = MediaQuery.of(context).size.width;
-                                            
-                        if (screenWidth > 900) {
-                          return _buildWebRacePathPreview();
-                        } else if (isTablet) {
-                          return _buildTabletRacePathPreview();
-                        } else {
-                          return _buildMobileRacePathPreview();
-                        }
-                      },
-                    ),
+                    // Race path display - simplified for countdown
+                    _buildSimpleCountdownPreview(isWeb),
                   ],
                 ),
               ),
@@ -1635,8 +1751,6 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildTabletRacePathPreview() {
-    final screenSize = MediaQuery.of(context).size;
-    
     return Container(
       constraints: const BoxConstraints(maxWidth: 700),
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2035,110 +2149,6 @@ class _RaceScreenState extends State<RaceScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCompactPathCard(WikipediaPage page, {required bool isStart}) {
-    final color = isStart ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary;
-    final screenSize = MediaQuery.of(context).size;
-    final isWeb = screenSize.width > 800;
-    
-    return Container(
-      padding: EdgeInsets.all(isWeb ? 12 : 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
-                  color: Colors.white,
-                  size: 12,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  isStart ? 'START' : 'TARGET',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            page.title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: isWeb ? 12 : 11,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWebRacePath() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildCleanRacePathCard(_startPage!, isStart: true),
-        ),
-        Container(
-          width: 80,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 24,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Navigate',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: _buildCleanRacePathCard(_endPage!, isStart: false),
-        ),
-      ],
     );
   }
 
