@@ -1324,6 +1324,7 @@ class _RaceScreenState extends State<RaceScreen> {
   Widget _buildCountdownView() {
     final screenSize = MediaQuery.of(context).size;
     final isWeb = screenSize.width > 800;
+    final isTablet = screenSize.width > 600 && screenSize.width <= 900;
     
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -1402,7 +1403,19 @@ class _RaceScreenState extends State<RaceScreen> {
                     SizedBox(height: isWeb ? 40 : 30),
                     
                     // Race path display
-                    if (isWeb) _buildWebRacePathPreview() else _buildMobileRacePathPreview(),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final screenWidth = MediaQuery.of(context).size.width;
+                                            
+                        if (screenWidth > 900) {
+                          return _buildWebRacePathPreview();
+                        } else if (isTablet) {
+                          return _buildTabletRacePathPreview();
+                        } else {
+                          return _buildMobileRacePathPreview();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -1414,140 +1427,262 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildWebRacePathPreview() {
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 1200;
+    final maxWidth = isLargeScreen ? 900.0 : 700.0;
+    final cardPadding = isLargeScreen ? 24.0 : 20.0;
+    
     return Container(
-      constraints: const BoxConstraints(maxWidth: 600),
-      padding: const EdgeInsets.all(24),
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      padding: EdgeInsets.all(cardPadding),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: EdgeInsets.all(cardPadding),
+          child: Column(
+            children: [
+              // Start page
+              _buildHorizontalPageCard(_startPage!, isStart: true, isLarge: isLargeScreen),
+              
+              SizedBox(height: isLargeScreen ? 20 : 16),
+              
+              // Arrow indicator
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isLargeScreen ? 20 : 16, 
+                  vertical: isLargeScreen ? 12 : 10
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.arrow_downward_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: isLargeScreen ? 24 : 20,
+                    ),
+                    SizedBox(width: isLargeScreen ? 8 : 6),
+                    Text(
+                      'Navigate',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: isLargeScreen ? 14 : 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: isLargeScreen ? 20 : 16),
+              
+              // Target page
+              _buildHorizontalPageCard(_endPage!, isStart: false, isLarge: isLargeScreen),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildHorizontalPageCard(WikipediaPage page, {required bool isStart, bool isLarge = false}) {
+    final primaryColor = isStart 
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.tertiary;
+    final containerColor = isStart 
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.tertiaryContainer;
+    final onContainerColor = isStart 
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onTertiaryContainer;
+    
+    final iconSize = isLarge ? 28.0 : 24.0;
+    final titleFontSize = isLarge ? 16.0 : 14.0;
+    final labelFontSize = isLarge ? 11.0 : 10.0;
+    final descriptionFontSize = isLarge ? 12.0 : 11.0;
+    
+    return Container(
+      padding: EdgeInsets.all(isLarge ? 16 : 14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side - Icon and label
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: EdgeInsets.all(isLarge ? 12 : 10),
+                decoration: BoxDecoration(
+                  color: containerColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                  color: onContainerColor,
+                  size: iconSize,
+                ),
+              ),
+              
+              SizedBox(height: isLarge ? 8 : 6),
+              
+              // Label
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isLarge ? 10 : 8, 
+                  vertical: isLarge ? 6 : 4
+                ),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isStart ? 'START' : 'TARGET',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: labelFontSize,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(width: isLarge ? 16 : 12),
+          
+          // Right side - Page content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Page title with copy button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        page.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: titleFontSize,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
+                      icon: const Icon(Icons.copy_rounded),
+                      iconSize: isLarge ? 18 : 16,
+                      padding: const EdgeInsets.all(4),
+                      constraints: BoxConstraints(
+                        minWidth: isLarge ? 28 : 24,
+                        minHeight: isLarge ? 28 : 24,
+                      ),
+                      tooltip: 'Copy ${isStart ? "start" : "target"} page name',
+                    ),
+                  ],
+                ),
+                
+                // Page description (if available)
+                if (page.extract != null && page.extract!.isNotEmpty) ...[
+                  SizedBox(height: isLarge ? 8 : 6),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(isLarge ? 12 : 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      page.extract!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: descriptionFontSize,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletRacePathPreview() {
+    final screenSize = MediaQuery.of(context).size;
+    
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 700),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Card(
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
+              // Start page
+              _buildTabletPageCard(_startPage!, isStart: true),
+              
+              const SizedBox(height: 16),
+              
+              // Arrow indicator
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.play_arrow_rounded,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'START',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: 22,
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _startPage?.title ?? '',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () => _copyPageName(_startPage?.title ?? '', 'Start'),
-                          icon: const Icon(Icons.copy_rounded, size: 16),
-                          iconSize: 16,
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                          tooltip: 'Copy start page name',
-                        ),
-                      ],
+                    const SizedBox(width: 6),
+                    Text(
+                      'Navigate',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
-              Icon(
-                Icons.arrow_forward_rounded,
-                color: Theme.of(context).colorScheme.primary,
-                size: 32,
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.tertiaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.flag_rounded,
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'TARGET',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _endPage?.title ?? '',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () => _copyPageName(_endPage?.title ?? '', 'Target'),
-                          icon: const Icon(Icons.copy_rounded, size: 16),
-                          iconSize: 16,
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                          tooltip: 'Copy target page name',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              
+              const SizedBox(height: 16),
+              
+              // Target page
+              _buildTabletPageCard(_endPage!, isStart: false),
             ],
           ),
         ),
@@ -1555,145 +1690,350 @@ class _RaceScreenState extends State<RaceScreen> {
     );
   }
 
-  Widget _buildMobileRacePathPreview() {
+  Widget _buildTabletPageCard(WikipediaPage page, {required bool isStart}) {
+    final primaryColor = isStart 
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.tertiary;
+    final containerColor = isStart 
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.tertiaryContainer;
+    final onContainerColor = isStart 
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onTertiaryContainer;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side - Icon and label
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Start page
-              Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.play_arrow_rounded,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'START',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _startPage?.title ?? '',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () => _copyPageName(_startPage?.title ?? '', 'Start'),
-                        icon: const Icon(Icons.copy_rounded, size: 14),
-                        iconSize: 14,
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                        tooltip: 'Copy start page name',
-                      ),
-                    ],
-                  ),
-                ],
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: containerColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                  color: onContainerColor,
+                  size: 22,
+                ),
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: 6),
               
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: Theme.of(context).colorScheme.primary,
-                size: 24,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Target page
-              Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.tertiaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.flag_rounded,
-                          color: Theme.of(context).colorScheme.onTertiaryContainer,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'TARGET',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+              // Label
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isStart ? 'START' : 'TARGET',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _endPage?.title ?? '',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () => _copyPageName(_endPage?.title ?? '', 'Target'),
-                        icon: const Icon(Icons.copy_rounded, size: 14),
-                        iconSize: 14,
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                        tooltip: 'Copy target page name',
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ],
           ),
+          
+          const SizedBox(width: 14),
+          
+          // Right side - Page content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Page title with copy button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        page.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
+                      icon: const Icon(Icons.copy_rounded),
+                      iconSize: 16,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                      tooltip: 'Copy ${isStart ? "start" : "target"} page name',
+                    ),
+                  ],
+                ),
+                
+                // Page description (if available)
+                if (page.extract != null && page.extract!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      page.extract!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileRacePathPreview() {
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final isCompact = screenHeight < 600;
+    final isVerySmall = screenWidth < 400;
+    
+    final horizontalPadding = isVerySmall ? 12.0 : 16.0;
+    final cardPadding = isCompact ? 12.0 : 16.0;
+    final spacing = isCompact ? 12.0 : 16.0;
+    
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: EdgeInsets.all(cardPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Start page
+              _buildMobileHorizontalPageCard(_startPage!, isStart: true, isVerySmall: isVerySmall, isCompact: isCompact),
+              
+              SizedBox(height: spacing),
+              
+              // Arrow indicator
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isVerySmall ? 12 : 16, 
+                  vertical: isVerySmall ? 6 : 8
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: isVerySmall ? 18 : 20,
+                    ),
+                    SizedBox(width: isVerySmall ? 4 : 6),
+                    Text(
+                      'Navigate',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: isVerySmall ? 10 : 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: spacing),
+              
+              // Target page
+              _buildMobileHorizontalPageCard(_endPage!, isStart: false, isVerySmall: isVerySmall, isCompact: isCompact),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+  
+  Widget _buildMobileHorizontalPageCard(WikipediaPage page, {required bool isStart, required bool isVerySmall, required bool isCompact}) {
+    final primaryColor = isStart 
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.tertiary;
+    final containerColor = isStart 
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.tertiaryContainer;
+    final onContainerColor = isStart 
+        ? Theme.of(context).colorScheme.onPrimaryContainer
+        : Theme.of(context).colorScheme.onTertiaryContainer;
+    
+    final iconSize = isVerySmall ? 16.0 : 18.0;
+    final titleFontSize = isVerySmall ? 12.0 : 13.0;
+    final labelFontSize = isVerySmall ? 8.0 : 9.0;
+    final descriptionFontSize = isVerySmall ? 9.0 : 10.0;
+    
+    return Container(
+      padding: EdgeInsets.all(isVerySmall ? 10 : 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side - Icon and label
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: EdgeInsets.all(isVerySmall ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: containerColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                  color: onContainerColor,
+                  size: iconSize,
+                ),
+              ),
+              
+              SizedBox(height: isVerySmall ? 4 : 6),
+              
+              // Label
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isVerySmall ? 6 : 8, 
+                  vertical: isVerySmall ? 3 : 4
+                ),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  isStart ? 'START' : 'TARGET',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: labelFontSize,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(width: isVerySmall ? 8 : 10),
+          
+          // Right side - Page content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Page title with copy button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        page.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: titleFontSize,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          height: 1.3,
+                        ),
+                        maxLines: isCompact ? 2 : 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton(
+                      onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
+                      icon: const Icon(Icons.copy_rounded),
+                      iconSize: isVerySmall ? 14 : 16,
+                      padding: const EdgeInsets.all(3),
+                      constraints: BoxConstraints(
+                        minWidth: isVerySmall ? 20 : 24,
+                        minHeight: isVerySmall ? 20 : 24,
+                      ),
+                      tooltip: 'Copy ${isStart ? "start" : "target"} page name',
+                    ),
+                  ],
+                ),
+                
+                // Page description (if available and not compact)
+                if (page.extract != null && page.extract!.isNotEmpty && !isCompact) ...[
+                  SizedBox(height: isVerySmall ? 4 : 6),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(isVerySmall ? 8 : 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      page.extract!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: descriptionFontSize,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2576,7 +2916,23 @@ class _RaceScreenState extends State<RaceScreen> {
 
   Widget _buildCleanRacePathCard(WikipediaPage page, {required bool isStart}) {
     final screenSize = MediaQuery.of(context).size;
-    final isWeb = screenSize.width > 800;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    
+    // Responsive breakpoints
+    final isLargeScreen = screenWidth > 1200;
+    final isMediumScreen = screenWidth > 800 && screenWidth <= 1200;
+    final isSmallScreen = screenWidth > 600 && screenWidth <= 800;
+    final isMobile = screenWidth <= 600;
+    final isCompact = screenHeight < 600;
+    
+    // Dynamic sizing based on screen size
+    final cardPadding = isLargeScreen ? 20.0 : isMediumScreen ? 16.0 : isSmallScreen ? 14.0 : 12.0;
+    final iconSize = isLargeScreen ? 32.0 : isMediumScreen ? 28.0 : isSmallScreen ? 24.0 : 20.0;
+    final titleFontSize = isLargeScreen ? 16.0 : isMediumScreen ? 15.0 : isSmallScreen ? 14.0 : 13.0;
+    final labelFontSize = isLargeScreen ? 11.0 : isMediumScreen ? 10.0 : 9.0;
+    final descriptionFontSize = isLargeScreen ? 13.0 : isMediumScreen ? 12.0 : isSmallScreen ? 11.0 : 10.0;
+    
     final primaryColor = isStart 
         ? Theme.of(context).colorScheme.primary 
         : Theme.of(context).colorScheme.tertiary;
@@ -2590,79 +2946,120 @@ class _RaceScreenState extends State<RaceScreen> {
     return Card(
       elevation: 3,
       child: Padding(
-        padding: EdgeInsets.all(isWeb ? 20 : 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: EdgeInsets.all(cardPadding),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: containerColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
-                color: onContainerColor,
-                size: isWeb ? 32 : 24,
-              ),
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Label
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                isStart ? 'START' : 'TARGET',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: isWeb ? 12 : 11,
-                  letterSpacing: 0.5,
+            // Left side - Icon and label
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Container(
+                  padding: EdgeInsets.all(isMobile ? 10 : 12),
+                  decoration: BoxDecoration(
+                    color: containerColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
+                    color: onContainerColor,
+                    size: iconSize,
+                  ),
                 ),
-              ),
+                
+                SizedBox(height: isMobile ? 6 : 8),
+                
+                // Label
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 8 : 10, 
+                    vertical: isMobile ? 4 : 6
+                  ),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isStart ? 'START' : 'TARGET',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: labelFontSize,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
             ),
             
-            const SizedBox(height: 12),
+            SizedBox(width: isMobile ? 12 : 16),
             
-            // Page title with copy button
+            // Right side - Page content
             Expanded(
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        page.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: isWeb ? 16 : 14,
-                          color: Theme.of(context).colorScheme.onSurface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Page title with copy button
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          page.title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: titleFontSize,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.3,
+                          ),
+                          maxLines: isCompact ? 2 : 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: isWeb ? 3 : 2,
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
+                        icon: const Icon(Icons.copy_rounded),
+                        iconSize: isMobile ? 16 : 18,
+                        padding: const EdgeInsets.all(4),
+                        constraints: BoxConstraints(
+                          minWidth: isMobile ? 24 : 28,
+                          minHeight: isMobile ? 24 : 28,
+                        ),
+                        tooltip: 'Copy ${isStart ? "start" : "target"} page name',
+                      ),
+                    ],
+                  ),
+                  
+                  // Page description (if available)
+                  if (page.extract != null && page.extract!.isNotEmpty) ...[
+                    SizedBox(height: isMobile ? 6 : 8),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(isMobile ? 10 : 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        page.extract!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: descriptionFontSize,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                        maxLines: isCompact ? 2 : (isMobile ? 3 : 4),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
-                      icon: const Icon(Icons.copy_rounded),
-                      iconSize: isWeb ? 18 : 16,
-                      padding: const EdgeInsets.all(4),
-                      constraints: BoxConstraints(
-                        minWidth: isWeb ? 28 : 24,
-                        minHeight: isWeb ? 28 : 24,
-                      ),
-                      tooltip: 'Copy ${isStart ? "start" : "target"} page name',
-                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ],

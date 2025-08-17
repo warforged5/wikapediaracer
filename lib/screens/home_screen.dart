@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icons.group,
                             title: 'Groups',
                             subtitle: 'Manage groups',
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.primary,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.emoji_events,
                       title: 'Tournaments',
                       subtitle: 'Compete in structured competitions',
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.primary,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -260,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             icon: Icons.military_tech,
                             title: 'Profile',
-                            color: Theme.of(context).colorScheme.error,
+                            color: Theme.of(context).colorScheme.tertiary,
                             onTap: () {
                               Navigator.push(
                                 context,

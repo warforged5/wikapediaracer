@@ -313,18 +313,6 @@ class AppThemes {
       brightness: Brightness.light,
     ),
 
-    // 12. Golden Hour
-    AppThemeData(
-      name: 'Golden Hour',
-      description: 'Warm sunset glow',
-      icon: Icons.wb_twilight,
-      primaryColor: Color(0xFFFF8F00),
-      secondaryColor: Color(0xFFFFAB00),
-      backgroundColor: Color(0xFFFFF8E1),
-      surfaceColor: Color(0xFFFFF3C4),
-      brightness: Brightness.light,
-    ),
-
     // 13. Lavender Dreams
     AppThemeData(
       name: 'Lavender Dreams',
@@ -333,7 +321,7 @@ class AppThemes {
       primaryColor: Color(0xFF7B1FA2),
       secondaryColor: Color(0xFFAB47BC),
       backgroundColor: Color(0xFFF3E5F5),
-      surfaceColor: Color(0xFFE1BEE7),
+      surfaceColor: Color.fromARGB(255, 231, 217, 234),
       brightness: Brightness.light,
     ),
 
@@ -467,18 +455,6 @@ class AppThemes {
       backgroundColor: Color(0xFF0F0F0F),
       surfaceColor: Color(0xFF1A0E27),
       brightness: Brightness.dark,
-    ),
-
-    // 25. Sunshine Yellow
-    AppThemeData(
-      name: 'Sunshine Yellow',
-      description: 'Bright and happy',
-      icon: Icons.sunny,
-      primaryColor: Color(0xFFFFEB3B),
-      secondaryColor: Color(0xFFFFC107),
-      backgroundColor: Color(0xFFFFFDE7),
-      surfaceColor: Color(0xFFFFF9C4),
-      brightness: Brightness.light,
     ),
   ];
 
