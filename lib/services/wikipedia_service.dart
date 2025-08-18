@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import '../models/wikipedia_page.dart';
 
 class WikipediaService {
-  static const String _baseUrl = 'https://en.wikipedia.org/api/rest_v1';
   static const String _apiUrl = 'https://en.wikipedia.org/w/api.php';
   
   static WikipediaService? _instance;
@@ -130,32 +129,6 @@ class WikipediaService {
     }
     
     return pagesMap;
-  }
-  
-  /// Get details for a single page (kept for backward compatibility)
-  Future<WikipediaPage?> _getPageDetails(String title) async {
-    try {
-      final encodedTitle = Uri.encodeComponent(title);
-      final response = await _client.get(
-        Uri.parse('$_baseUrl/page/summary/$encodedTitle'),
-        headers: {
-          'User-Agent': 'WikipediaRacer/1.0 (https://github.com/warforged5/wikapediaracer)',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return WikipediaPage(
-          pageId: data['pageid'] ?? 0,
-          title: data['title'] ?? title,
-          extract: data['extract'],
-          thumbnail: data['thumbnail']?['source'],
-        );
-      }
-    } catch (e) {
-      print('Error fetching page details for $title: $e');
-    }
-    return null;
   }
 
   List<WikipediaPage> _getFallbackPages(int count) {
