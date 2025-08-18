@@ -20,6 +20,7 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Multiple players support** with colorful player identification
 - **Custom page input** - add your own Wikipedia pages to the race
 - **Winner tracking** across rounds with leaderboard
+- **Enhanced race path display** with page descriptions and copy functionality
 
 ### 👥 Group Management
 - **Create and manage racing groups** for organized competitions
@@ -34,6 +35,12 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **One-click match starting** directly from bracket view
 - **Tournament result tracking** with champion celebrations
 - **Flexible participant management** (4-32 players)
+
+### 🎖️ Achievement System
+- **Unlockable achievements** based on racing performance and milestones
+- **Progress tracking** with detailed achievement descriptions
+- **Achievement categories** covering different aspects of gameplay
+- **Visual achievement display** with icons and completion status
 
 ### 🎨 Modern Design
 - **Material Design 3** with expressive theming
@@ -275,25 +282,33 @@ Having issues? Here are some resources:
 
 ### Upcoming Features
 - [ ] **Multiplayer online races** with real-time synchronization
-- [ ] **Achievement system** with unlockable badges
 - [ ] **Custom Wikipedia sources** (other language editions)
 - [ ] **Race replay system** to review navigation paths
 - [ ] **Advanced statistics** and performance analytics
 - [ ] **Tournament live streaming** and spectator mode
 - [ ] **AI opponents** for single-player practice
 
-### Completed ✅
-- [x] Multi-round racing system
-- [x] Group management and statistics
+### Recently Added ✅
+- [x] **Enhanced race path display** with horizontal layouts, icons, and page descriptions
+- [x] **Simplified countdown screen** optimized for all screen sizes and orientations
+- [x] **Improved responsive design** with 4 breakpoints (mobile, small, medium, large screens)
+- [x] **Better racing interface** with cleaner visual hierarchy and user experience
+- [x] **Copy page names functionality** with toast notifications for easy sharing
+- [x] **Advanced layout system** with tablet-specific designs and orientation handling
+
+### Core Features ✅
+- [x] Multi-round racing system with real-time timers
+- [x] Group management and comprehensive statistics
 - [x] **Tournament system** with multiple formats (Single/Double Elimination, Round Robin, Swiss)
 - [x] **Social sharing** of race results, challenges, and tournament announcements
-- [x] **Player profile system** with selection dialogs
+- [x] **Player profile system** with advanced selection dialogs
 - [x] **Interactive tournament brackets** with one-click match starting
-- [x] 10 beautiful themes with Material 3 design
-- [x] Cross-platform support (mobile, web, desktop)
-- [x] Responsive design for all screen sizes
-- [x] Custom page input functionality
-- [x] Race history and data export
+- [x] **Achievement system** with unlockable achievements and progress tracking
+- [x] 10 beautiful themes with Material 3 design system
+- [x] **Complete cross-platform support** (Android, iOS, Web, Windows, macOS, Linux)
+- [x] **Fully responsive design** adapting from mobile to ultra-wide displays
+- [x] Custom page input functionality with validation
+- [x] Comprehensive race history and data export capabilities
 
 ---
 

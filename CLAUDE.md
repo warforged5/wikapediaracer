@@ -56,39 +56,95 @@ flutter clean
 # Check for outdated packages
 flutter pub outdated
 
-# Generate platform-specific code
-flutter create --platforms=android,ios,web,windows,linux,macos .
+# Generate code (JSON serialization)
+flutter packages pub run build_runner build
 ```
 
 ## Project Architecture
 
 ### Current State
-This is a freshly created Flutter project with minimal implementation:
-- **Entry Point**: `lib/main.dart` contains a basic MaterialApp with "Hello World" text
-- **Dependencies**: Only core Flutter dependencies and flutter_lints for code analysis
-- **Platforms**: Configured for all Flutter platforms (Android, iOS, Web, Windows, Linux, macOS)
+This is a fully implemented Flutter application for Wikipedia racing:
+- **Entry Point**: `lib/main.dart` initializes storage services, theme services, and renders the home screen
+- **Multi-platform**: Supports Android, iOS, Web, Windows, Linux, and macOS
+- **Full Features**: Complete Wikipedia racing game with tournaments, groups, achievements, and more
 
 ### Project Structure
-- `lib/`: Main Dart source code directory (currently contains only main.dart)
-- `android/`: Android-specific configuration and native code
-- `ios/`: iOS-specific configuration and native code
-- `web/`: Web-specific assets and configuration
-- `windows/`: Windows-specific configuration and native code
-- `linux/`: Linux-specific configuration and native code  
-- `macos/`: macOS-specific configuration and native code
+- `lib/main.dart`: Application entry point with theme and service initialization
+- `lib/models/`: Data models with JSON serialization (Player, Group, Tournament, Race Results, etc.)
+- `lib/screens/`: All UI screens including home, race, tournaments, groups, achievements
+- `lib/services/`: Business logic services (Wikipedia API, storage, themes, achievements, etc.)
+- `lib/themes/`: Custom theme system with multiple color schemes
+- `lib/widgets/`: Reusable UI components
+- `assets/images/`: Application assets and splash screen
+
+### Dependencies
+Core dependencies include:
+- `http`: API calls to Wikipedia
+- `shared_preferences`: Local data storage
+- `json_annotation/json_serializable`: JSON serialization
+- `uuid`: Unique ID generation
+- `share_plus`: Social sharing functionality
+- `morphable_shape`: Advanced UI animations
+- `flutter_native_splash`: Native splash screen
 
 ### Code Quality
-- Uses `flutter_lints` package with default Flutter linting rules
-- Analysis options configured in `analysis_options.yaml`
-- Follows standard Flutter project conventions
+- Uses `flutter_lints` package with strict linting rules
+- JSON serialization with code generation
+- Comprehensive error handling and loading states
+- Responsive design supporting all screen sizes
 
-## Development Notes
+## Application Features
 
-### Project
-This project is a wikapeadia racer which makes it easy for people to race there friends from one wikapedia page to another and supports that with a variety of features.
+### Core Functionality
+- **Wikipedia Racing**: Race from one Wikipedia page to another through link navigation
+- **Multiple Game Modes**: Quick races, group competitions, and tournaments
+- **Player Management**: Create and manage player profiles
+- **Group System**: Create groups and compete with friends
+- **Tournament System**: Bracket-style tournaments with multiple rounds
+- **Achievement System**: Unlock achievements based on racing performance
+- **History Tracking**: Complete race history and statistics
 
-### Project Name
-The project is named "wikapediaracer" - appears to be intended as a Wikipedia-related racing/speed game or application.
+### UI/UX Features
+- **Responsive Design**: Adapts to all screen sizes from mobile to desktop
+- **Multiple Themes**: 8+ built-in themes with light/dark mode support
+- **Smooth Animations**: Custom animations and transitions throughout
+- **Accessibility**: Screen reader support and keyboard navigation
+- **Cross-Platform**: Native feel on all supported platforms
 
-### Current Development Phase
-This is a skeleton Flutter project that needs implementation. The basic structure is in place but the actual application logic needs to be developed.
+### Recent Improvements
+- **Enhanced Race Path Display**: Horizontal layout with icons, labels, and descriptions
+- **Responsive Countdown Screen**: Simplified design that adapts to all screen sizes
+- **Improved Racing Interface**: Better visual hierarchy and user experience
+- **Theme System**: Complete theme customization with color schemes
+- **Performance**: Optimized for smooth operation across all platforms
+
+## Development Guidelines
+
+### Architecture Patterns
+- **Service Layer**: Business logic separated from UI
+- **Model-View Pattern**: Clean separation of data and presentation
+- **State Management**: Local state with StatefulWidget and service pattern
+- **Responsive Design**: Layout builders and media queries for adaptive UI
+
+### Code Conventions
+- Follow standard Dart/Flutter conventions
+- Use meaningful variable and function names
+- Keep widgets focused and composable
+- Implement proper error handling
+- Use const constructors where possible
+
+### UI Development
+- All layouts must be responsive and work on mobile, tablet, and desktop
+- Use theme colors and avoid hardcoded colors
+- Follow Material Design 3 principles
+- Implement proper loading and error states
+- Consider accessibility in all UI components
+
+### Testing
+- Write unit tests for services and business logic
+- Test responsive layouts on different screen sizes
+- Verify cross-platform compatibility
+- Test edge cases and error conditions
+
+## Project Status
+This is a complete, production-ready Wikipedia racing application with comprehensive features, responsive design, and cross-platform support.
