@@ -6,11 +6,13 @@ import 'package:share_plus/share_plus.dart';
 import '../models/group.dart';
 import '../models/race_result.dart';
 import '../models/player.dart';
+import '../models/custom_list.dart';
 
 class StorageService {
   static const String _groupsKey = 'groups';
   static const String _raceResultsKey = 'race_results';
   static const String _currentPlayerKey = 'current_player';
+  static const String _customListsKey = 'custom_lists';
 
   static StorageService? _instance;
   static StorageService get instance => _instance ??= StorageService._();
@@ -194,5 +196,49 @@ class StorageService {
   Future<void> removeData(String key) async {
     await init();
     await _prefs?.remove(key);
+  }
+
+  // Custom List Methods
+  Future<List<CustomList>> getCustomLists() async {
+    await init();
+    final listsJson = _prefs?.getString(_customListsKey);
+    if (listsJson == null) return [];
+    
+    final List<dynamic> listsList = jsonDecode(listsJson);
+    return listsList.map((json) => CustomList.fromJson(json)).toList();
+  }
+
+  Future<void> saveCustomLists(List<CustomList> lists) async {
+    await init();
+    final listsJson = jsonEncode(lists.map((l) => l.toJson()).toList());
+    await _prefs?.setString(_customListsKey, listsJson);
+  }
+
+  Future<void> saveCustomList(CustomList customList) async {
+    final lists = await getCustomLists();
+    final index = lists.indexWhere((l) => l.id == customList.id);
+    
+    if (index >= 0) {
+      lists[index] = customList;
+    } else {
+      lists.add(customList);
+    }
+    
+    await saveCustomLists(lists);
+  }
+
+  Future<void> deleteCustomList(String listId) async {
+    final lists = await getCustomLists();
+    lists.removeWhere((l) => l.id == listId);
+    await saveCustomLists(lists);
+  }
+
+  Future<CustomList?> getCustomList(String listId) async {
+    final lists = await getCustomLists();
+    try {
+      return lists.firstWhere((l) => l.id == listId);
+    } catch (e) {
+      return null;
+    }
   }
 }

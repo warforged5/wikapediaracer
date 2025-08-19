@@ -26,12 +26,16 @@ class RaceScreen extends StatefulWidget {
   final List<Player> players;
   final int rounds;
   final String? groupId;
+  final List<String>? customPages;
+  final int? optionCount;
 
   const RaceScreen({
     super.key,
     required this.players,
     required this.rounds,
     this.groupId,
+    this.customPages,
+    this.optionCount,
   });
 
   @override
@@ -59,6 +63,10 @@ class _RaceScreenState extends State<RaceScreen> {
   final TextEditingController _customPageController = TextEditingController();
   int _refreshCount = 0;
   static const int _maxRefreshes = 3;
+  
+  // Custom list support
+  List<String>? _customPageList;
+  int _customPageOptionCount = 5;
 
   @override
   void initState() {
@@ -69,8 +77,12 @@ class _RaceScreenState extends State<RaceScreen> {
       _playerScores[player.id] = 0;
     }
     
+    // Initialize custom list support
+    _customPageList = widget.customPages;
+    _customPageOptionCount = widget.optionCount ?? 5;
+    
     _loadCountdownDuration();
-    _loadRandomPages();
+    _loadPages();
   }
 
   @override
@@ -97,7 +109,7 @@ class _RaceScreenState extends State<RaceScreen> {
     });
   }
 
-  Future<void> _loadRandomPages() async {
+  Future<void> _loadPages() async {
     if (_isLoading) return; // Prevent concurrent calls
     
     setState(() {
@@ -108,9 +120,16 @@ class _RaceScreenState extends State<RaceScreen> {
     });
 
     try {
-      // Add timeout to prevent hanging
-      final pages = await WikipediaService.instance.getRandomPages(10)
-          .timeout(const Duration(seconds: 10));
+      List<WikipediaPage> pages;
+      
+      if (_customPageList != null && _customPageList!.isNotEmpty) {
+        // Use custom list
+        pages = _getRandomCustomPages(_customPageOptionCount);
+      } else {
+        // Use Wikipedia API
+        pages = await WikipediaService.instance.getRandomPages(10)
+            .timeout(const Duration(seconds: 10));
+      }
       
       if (mounted) {
         setState(() {
@@ -130,7 +149,27 @@ class _RaceScreenState extends State<RaceScreen> {
     }
   }
 
+  List<WikipediaPage> _getRandomCustomPages(int count) {
+    if (_customPageList == null || _customPageList!.isEmpty) {
+      return [];
+    }
+    
+    final shuffled = List<String>.from(_customPageList!)..shuffle();
+    final selectedPages = shuffled.take(count).toList();
+    
+    return selectedPages.map((title) => WikipediaPage(
+      pageId: title.hashCode,
+      title: title,
+    )).toList();
+  }
+
   Future<void> _refreshPages() async {
+    if (_customPageList != null) {
+      // For custom lists, we can refresh without limits
+      await _loadPages();
+      return;
+    }
+    
     if (_refreshCount >= _maxRefreshes) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -142,7 +181,7 @@ class _RaceScreenState extends State<RaceScreen> {
     }
     
     _refreshCount++;
-    await _loadRandomPages();
+    await _loadPages();
     
     if (mounted) {
       final remaining = _maxRefreshes - _refreshCount;
@@ -164,9 +203,9 @@ class _RaceScreenState extends State<RaceScreen> {
         _phase = RacePhase.selectingEnd;
         _refreshCount = 0; // Reset refresh count for end page selection
       });
-      // Only load random pages if we're not already loading and it's not a custom page issue
+      // Only load pages if we're not already loading and it's not a custom page issue
       if (!_isLoading) {
-        _loadRandomPages();
+        _loadPages();
       }
     } else if (_phase == RacePhase.selectingEnd) {
       setState(() {
@@ -485,7 +524,7 @@ class _RaceScreenState extends State<RaceScreen> {
                             _endPage = null;
                             _refreshCount = 0; // Reset refresh count for new round
                           });
-                          _loadRandomPages();
+                          _loadPages();
                         },
                         style: FilledButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,

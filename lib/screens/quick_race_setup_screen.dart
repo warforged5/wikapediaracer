@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/player.dart';
 import 'race_screen.dart';
+import 'custom_list_screen.dart';
 
 class QuickRaceSetupScreen extends StatefulWidget {
   const QuickRaceSetupScreen({super.key});
@@ -95,6 +96,34 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _navigateToCustomList() {
+    final playerNames = _playerControllers
+        .map((c) => c.text.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (playerNames.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least 2 unique players are required')),
+      );
+      return;
+    }
+
+    final players = playerNames.map((name) => Player(name: name)).toList();
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomListScreen(
+          players: players,
+          rounds: _rounds,
+          groupId: null,
+        ),
+      ),
+    );
   }
 
   @override
@@ -252,7 +281,50 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+
+          // Custom List Button
+          Container(
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                width: 2,
+              ),
+              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _navigateToCustomList(),
+                borderRadius: BorderRadius.circular(28),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.list_alt,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Use Custom List',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
 
           // Start Race Button
           Container(
