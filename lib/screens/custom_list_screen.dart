@@ -428,37 +428,10 @@ class _CustomListScreenState extends State<CustomListScreen> {
                       final count = index + 3; // 3-8 options
                       final isSelected = _optionCount == count;
                       
-                      return GestureDetector(
+                      return _AnimatedOptionButton(
+                        count: count,
+                        isSelected: isSelected,
                         onTap: () => setState(() => _optionCount = count),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.surface,
-                            border: Border.all(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outline.withOpacity(0.4),
-                              width: isSelected ? 3 : 2,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$count',
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                                fontSize: isSelected ? 18 : 16,
-                              ),
-                            ),
-                          ),
-                        ),
                       );
                     }),
                   ),
@@ -539,10 +512,10 @@ class _CustomListScreenState extends State<CustomListScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -566,6 +539,156 @@ class _CustomListScreenState extends State<CustomListScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AnimatedOptionButton extends StatefulWidget {
+  final int count;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AnimatedOptionButton({
+    required this.count,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_AnimatedOptionButton> createState() => _AnimatedOptionButtonState();
+}
+
+class _AnimatedOptionButtonState extends State<_AnimatedOptionButton>
+    with TickerProviderStateMixin {
+  late AnimationController _morphController;
+  late AnimationController _bounceController;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _scaleAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _morphController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    
+    // Morph from squircle (0.0) to circle (1.0)
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeOutCubic,
+    );
+    
+    // Scale animation for the bounce
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.12,
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.elasticOut,
+    ));
+    
+    if (widget.isSelected) {
+      _morphController.forward();
+      _bounceController.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedOptionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    if (widget.isSelected != oldWidget.isSelected) {
+      if (widget.isSelected) {
+        _morphController.forward();
+        _bounceController.reset();
+        _bounceController.forward();
+      } else {
+        _morphController.reverse();
+        _bounceController.reset();
+      }
+    }
+  }
+  
+  @override
+  void dispose() {
+    _morphController.dispose();
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_morphAnimation, _scaleAnimation]),
+        builder: (context, child) {
+          // Calculate border radius: squircle (12) to circle (24)
+          final borderRadius = Tween<double>(
+            begin: 12.0, // Squircle
+            end: 24.0,   // Circle
+          ).evaluate(_morphAnimation);
+          
+          final scale = widget.isSelected 
+            ? (1.0 + (_scaleAnimation.value - 1.0)) 
+            : 1.0;
+          
+          return Transform.scale(
+            scale: scale,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surface,
+                border: Border.all(
+                  color: widget.isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+                  width: widget.isSelected ? 3 : 2,
+                ),
+                borderRadius: BorderRadius.circular(borderRadius),
+                boxShadow: widget.isSelected ? [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                    spreadRadius: 1,
+                  ),
+                ] : [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    color: widget.isSelected
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: widget.isSelected ? 18 : 16,
+                  ),
+                  child: Text('${widget.count}'),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
