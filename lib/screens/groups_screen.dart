@@ -126,10 +126,10 @@ class _GroupsScreenState extends State<GroupsScreen> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                   width: 2,
                 ),
               ),
@@ -152,7 +152,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
               'Create your first group to start tracking races and compete with friends!',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.4,
               ),
             ),
@@ -200,7 +200,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -258,13 +258,13 @@ class _GroupsScreenState extends State<GroupsScreen> {
                                     Icon(
                                       Icons.people,
                                       size: 16,
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       '${group.players.length} players',
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -275,7 +275,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                           PopupMenuButton(
                             icon: Icon(
                               Icons.more_vert,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                             itemBuilder: (context) => [
                               PopupMenuItem(
@@ -303,10 +303,10 @@ class _GroupsScreenState extends State<GroupsScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                               width: 1,
                             ),
                           ),
@@ -345,7 +345,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                               margin: const EdgeInsets.only(right: 8),
                               child: CircleAvatar(
                                 radius: 16,
-                                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                 child: Text(
                                   player.name.substring(0, 1).toUpperCase(),
                                   style: TextStyle(
@@ -361,7 +361,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                                 margin: const EdgeInsets.only(right: 8),
                                 child: CircleAvatar(
                                   radius: 16,
-                                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                   child: Text(
                                     '+${group.players.length - 5}',
                                     style: TextStyle(

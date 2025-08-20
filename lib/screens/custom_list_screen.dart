@@ -225,7 +225,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -244,7 +244,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
                     Text(
                       'Select a saved list to use for racing',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -255,12 +255,12 @@ class _CustomListScreenState extends State<CustomListScreen> {
                         border: Border.all(
                           color: _selectedList?.id == list.id
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                           width: _selectedList?.id == list.id ? 2 : 1,
                         ),
                         borderRadius: BorderRadius.circular(12),
                         color: _selectedList?.id == list.id
-                            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1)
+                            ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1)
                             : null,
                       ),
                       child: ListTile(
@@ -302,7 +302,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -321,7 +321,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
                   Text(
                     'Enter at least 30 Wikipedia page titles separated by commas or newlines',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -398,7 +398,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -417,7 +417,7 @@ class _CustomListScreenState extends State<CustomListScreen> {
                   Text(
                     'Choose how many page options to show during the race',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -461,14 +461,14 @@ class _CustomListScreenState extends State<CustomListScreen> {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                   spreadRadius: 0,

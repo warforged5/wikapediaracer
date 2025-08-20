@@ -143,7 +143,7 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -177,7 +177,7 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                   Text(
                     'Customize player names or keep the defaults',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -227,7 +227,7 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -246,7 +246,7 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                   Text(
                     'Each round requires reaching a different Wikipedia page',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -289,10 +289,10 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                 width: 2,
               ),
-              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
             ),
             child: Material(
               color: Colors.transparent,
@@ -397,10 +397,10 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),

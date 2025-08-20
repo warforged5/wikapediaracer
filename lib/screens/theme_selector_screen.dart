@@ -81,10 +81,10 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                         width: double.infinity,
                         padding: EdgeInsets.all(isWeb ? 24 : 20),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -110,7 +110,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                               'Choose from 10 beautiful themes to make Wikipedia Racer your own',
                               style: TextStyle(
                                 fontSize: isWeb ? 16 : 14,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -148,7 +148,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -165,7 +165,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                                   'Your theme preference is automatically saved and will be applied across all screens.',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ),
@@ -188,8 +188,8 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: isSelected 
-            ? theme.primaryColor.withOpacity(0.6)
-            : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            ? theme.primaryColor.withValues(alpha: 0.6)
+            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           width: isSelected ? 3 : 1,
         ),
       ),
@@ -224,7 +224,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: theme.secondaryColor.withOpacity(0.3),
+                          color: theme.secondaryColor.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -236,7 +236,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -299,7 +299,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                           theme.description,
                           style: TextStyle(
                             fontSize: isWeb ? 13 : 12,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             height: 1.3,
                           ),
                           maxLines: isWeb ? 3 : 2,
@@ -345,7 +345,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                               color: theme.backgroundColor,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                                 width: 1,
                               ),
                             ),

@@ -107,7 +107,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -143,7 +143,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                   Text(
                     '${_selectedPlayerIds.length} of ${widget.group.players.length} players selected',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -158,13 +158,13 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
                           color: isSelected 
-                            ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                            : Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+                            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                           width: 1,
                         ),
                       ),
                       color: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2)
+                        ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2)
                         : Theme.of(context).colorScheme.surface,
                       child: CheckboxListTile(
                         value: isSelected,
@@ -174,7 +174,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                         secondary: CircleAvatar(
                           backgroundColor: isSelected
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           child: Text(
                             player.name.substring(0, 1).toUpperCase(),
                             style: TextStyle(
@@ -201,7 +201,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -220,7 +220,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                   Text(
                     'Each round requires reaching a different Wikipedia page',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -244,13 +244,13 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                             border: Border.all(
                               color: isSelected
                                   ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: isSelected ? [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -325,10 +325,10 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),

@@ -251,7 +251,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
             Icon(
               Icons.person_add,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             const Text('No players in this group'),
@@ -295,7 +295,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     child: Text(
                       player.name.substring(0, 1).toUpperCase(),
                       style: TextStyle(
@@ -416,7 +416,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
                       children: [
                         CircleAvatar(
                           radius: 16,
-                          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           child: Text(
                             player.name.substring(0, 1).toUpperCase(),
                             style: TextStyle(
@@ -438,7 +438,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
                               Text(
                                 '$wins wins • ${total - wins} losses • ${(winRate * 100).toStringAsFixed(1)}% win rate',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -470,7 +470,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -504,7 +504,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: const Color(0xFFFFD700).withOpacity(0.2),
+              backgroundColor: const Color(0xFFFFD700).withValues(alpha: 0.2),
               child: const Icon(Icons.emoji_events, color: Colors.orange),
             ),
             title: Text('${winner.name} won'),
@@ -521,7 +521,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
             trailing: Text(
               '${result.totalDuration.inMinutes}:${(result.totalDuration.inSeconds % 60).toString().padLeft(2, '0')}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ),

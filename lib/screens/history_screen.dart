@@ -209,7 +209,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                         Text(
                           '${race.rounds.length} rounds',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -317,7 +317,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                         TextSpan(
                                           text: ' (${roundWinner.name}, ${_formatDuration(round.duration)})',
                                           style: TextStyle(
-                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                           ),
                                         ),
                                       ],
@@ -340,14 +340,14 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                     Icon(
                       Icons.people,
                       size: 16,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         '${race.participants.length} players: ${race.participants.map((p) => p.name).join(', ')}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ),
@@ -359,13 +359,13 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                     Icon(
                       Icons.schedule,
                       size: 16,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${race.completedAt.day}/${race.completedAt.month}/${race.completedAt.year} at ${race.completedAt.hour}:${race.completedAt.minute.toString().padLeft(2, '0')}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
