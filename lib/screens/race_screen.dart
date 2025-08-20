@@ -1023,12 +1023,12 @@ class _RaceScreenState extends State<RaceScreen> {
                           const SizedBox(height: 12),
                           Expanded(
                             child: GridView.builder(
-                              padding: EdgeInsets.zero,
+                              padding: EdgeInsets.all(16),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: isWeb ? 4 : (isTablet ? 3 : 2),
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: isWeb ? 1.3 : 1.0,
+                                crossAxisSpacing: 20,
+                                mainAxisSpacing: 20,
+                                childAspectRatio: isWeb ? 1.4 : 1.1,
                               ),
                               itemCount: _currentPageOptions.length,
                               itemBuilder: (context, index) {
@@ -2026,7 +2026,7 @@ class _AnimatedPageCardState extends State<_AnimatedPageCard>
     // Scale animation for the bounce
     _scaleAnimation = Tween<double>(
       begin: 1.0,
-      end: 1.06,
+      end: 1.03,
     ).animate(CurvedAnimation(
       parent: _bounceController,
       curve: Curves.elasticOut,
@@ -2102,7 +2102,7 @@ class _AnimatedPageCardState extends State<_AnimatedPageCard>
                   onTap: _handleTap,
                   borderRadius: BorderRadius.circular(borderRadius),
                   child: Padding(
-                    padding: EdgeInsets.all(isWeb ? 12 : 16),
+                    padding: EdgeInsets.all(isWeb ? 8 : 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2133,21 +2133,21 @@ class _AnimatedPageCardState extends State<_AnimatedPageCard>
                           ],
                         ),
                         
-                        SizedBox(height: isWeb ? 8 : 12),
+                        SizedBox(height: isWeb ? 6 : 8),
                         
                         // Title
                         Text(
                           widget.page.title,
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: isWeb ? 13 : 13,
+                            fontSize: isWeb ? 12 : 13,
                             height: 1.2,
                           ),
                           maxLines: isWeb ? 2 : 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         
-                        SizedBox(height: isWeb ? 6 : 8),
+                        SizedBox(height: isWeb ? 4 : 6),
                         
                         // Extract (only on web and only if space allows)
                         if (widget.page.extract != null && widget.page.extract!.isNotEmpty && isWeb) ...[
@@ -2174,7 +2174,7 @@ class _AnimatedPageCardState extends State<_AnimatedPageCard>
                             onPressed: _handleTap,
                             style: FilledButton.styleFrom(
                               backgroundColor: widget.phaseColor,
-                              padding: EdgeInsets.symmetric(vertical: isWeb ? 6 : 8),
+                              padding: EdgeInsets.symmetric(vertical: isWeb ? 4 : 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
