@@ -1033,7 +1033,12 @@ class _RaceScreenState extends State<RaceScreen> {
                               itemCount: _currentPageOptions.length,
                               itemBuilder: (context, index) {
                                 final page = _currentPageOptions[index];
-                                return _buildCleanPageCard(page, index);
+                                return _AnimatedPageCard(
+                                  page: page, 
+                                  index: index, 
+                                  onTap: () => _selectPage(page),
+                                  phaseColor: _getPhaseColor(),
+                                );
                               },
                             ),
                           ),
@@ -1969,6 +1974,229 @@ class _RaceScreenState extends State<RaceScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedPageCard extends StatefulWidget {
+  final WikipediaPage page;
+  final int index;
+  final VoidCallback onTap;
+  final Color phaseColor;
+
+  const _AnimatedPageCard({
+    required this.page,
+    required this.index,
+    required this.onTap,
+    required this.phaseColor,
+  });
+
+  @override
+  State<_AnimatedPageCard> createState() => _AnimatedPageCardState();
+}
+
+class _AnimatedPageCardState extends State<_AnimatedPageCard>
+    with TickerProviderStateMixin {
+  late AnimationController _morphController;
+  late AnimationController _bounceController;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _scaleAnimation;
+  bool _isHovered = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _morphController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    // Morph from squircle (0.0) to circle-like (1.0)
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeOutCubic,
+    );
+    
+    // Scale animation for the bounce
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.06,
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.elasticOut,
+    ));
+    
+    // Start entrance animation with delay based on index
+    Future.delayed(Duration(milliseconds: widget.index * 100), () {
+      if (mounted) {
+        _morphController.forward();
+        _bounceController.forward();
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _morphController.dispose();
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _bounceController.reset();
+    _bounceController.forward().then((_) {
+      widget.onTap();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isWeb = screenSize.width > 800;
+    
+    return AnimatedBuilder(
+      animation: Listenable.merge([_morphAnimation, _scaleAnimation]),
+      builder: (context, child) {
+        // Calculate border radius: squircle (12) to more rounded (20)
+        final borderRadius = Tween<double>(
+          begin: 12.0, // Squircle
+          end: 20.0,   // More rounded
+        ).evaluate(_morphAnimation);
+        
+        final scale = 1.0 + (_scaleAnimation.value - 1.0);
+        
+        return Transform.scale(
+          scale: scale,
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _isHovered = true),
+            onExit: (_) => setState(() => _isHovered = false),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(borderRadius),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.phaseColor.withValues(alpha: _isHovered ? 0.3 : 0.1),
+                    blurRadius: _isHovered ? 12 : 6,
+                    offset: Offset(0, _isHovered ? 8 : 4),
+                    spreadRadius: _isHovered ? 1 : 0,
+                  ),
+                ],
+              ),
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  side: BorderSide(
+                    color: widget.phaseColor.withValues(alpha: _isHovered ? 0.4 : 0.2),
+                    width: _isHovered ? 2 : 1,
+                  ),
+                ),
+                child: InkWell(
+                  onTap: _handleTap,
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Padding(
+                    padding: EdgeInsets.all(isWeb ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: widget.phaseColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${widget.index + 1}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: isWeb ? 10 : 12,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.article_outlined,
+                              color: widget.phaseColor,
+                              size: isWeb ? 16 : 20,
+                            ),
+                          ],
+                        ),
+                        
+                        SizedBox(height: isWeb ? 8 : 12),
+                        
+                        // Title
+                        Text(
+                          widget.page.title,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: isWeb ? 13 : 13,
+                            height: 1.2,
+                          ),
+                          maxLines: isWeb ? 2 : 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        
+                        SizedBox(height: isWeb ? 6 : 8),
+                        
+                        // Extract (only on web and only if space allows)
+                        if (widget.page.extract != null && widget.page.extract!.isNotEmpty && isWeb) ...[
+                          Expanded(
+                            child: Text(
+                              widget.page.extract!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                fontSize: 11,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ] else
+                          const Spacer(),
+                        
+                        // Select button
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _handleTap,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: widget.phaseColor,
+                              padding: EdgeInsets.symmetric(vertical: isWeb ? 6 : 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'SELECT',
+                              style: TextStyle(
+                                fontSize: isWeb ? 11 : 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
