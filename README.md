@@ -18,7 +18,9 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Multi-round races** with customizable round counts
 - **Real-time race timer** with precise millisecond tracking
 - **Multiple players support** with colorful player identification
-- **Custom page input** - add your own Wikipedia pages to the race
+- **Custom Lists** - create and save your own curated Wikipedia page collections (30+ pages)
+- **Configurable options** - choose how many page options appear during races (3-8 choices)
+- **Custom page input** - add individual Wikipedia pages to any race
 - **Winner tracking** across rounds with leaderboard
 - **Enhanced race path display** with page descriptions and copy functionality
 
@@ -46,7 +48,9 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Material Design 3** with expressive theming
 - **10 beautiful themes** including light and dark options
 - **Responsive design** optimized for mobile, tablet, and web
-- **Clean, intuitive interface** with smooth animations
+- **Advanced animations** - morphing buttons with squircle-to-circle transitions and elastic bounces
+- **Animated page cards** with staggered entrance animations and interactive feedback
+- **Clean, intuitive interface** with delightful micro-interactions
 - **Accessibility-focused** with proper contrast and navigation
 
 ### 📱 Social Sharing
@@ -119,11 +123,15 @@ flutter build windows --release  # or macos/linux
 ### 🏃‍♂️ Quick Race Mode
 1. **Start a Quick Race** for immediate gameplay
 2. **Add players** to the race (2-8 players supported)
-3. **Choose starting page** from suggestions or enter a custom page
-4. **Select target page** - this is where everyone needs to reach
-5. **Race begins!** Players navigate Wikipedia using only internal links
-6. **First to reach the target wins** the round
-7. **Multiple rounds** determine the overall winner
+3. **Choose race type**:
+   - **Random Pages**: Use Wikipedia's API for random page suggestions
+   - **Custom Lists**: Create or select from saved lists of 30+ Wikipedia pages
+4. **Configure options**: Choose how many page options to show (3-8 choices)
+5. **Choose starting page** from suggestions or enter a custom page
+6. **Select target page** - this is where everyone needs to reach
+7. **Race begins!** Players navigate Wikipedia using only internal links
+8. **First to reach the target wins** the round
+9. **Multiple rounds** determine the overall winner
 
 ### 👥 Group Mode
 1. **Create a Group** for organized competitions with friends
@@ -157,6 +165,7 @@ lib/
 │   ├── race_result.dart          # Race results and rounds
 │   ├── tournament.dart           # Tournament system
 │   ├── group.dart                # Group management
+│   ├── custom_list.dart          # Custom Wikipedia page lists
 │   └── wikipedia_page.dart       # Wikipedia page data
 ├── screens/                       # UI screens
 │   ├── home_screen.dart          # Main navigation hub
@@ -165,6 +174,7 @@ lib/
 │   ├── tournament_screen.dart    # Tournament browser
 │   ├── tournament_detail_screen.dart
 │   ├── tournament_bracket_screen.dart
+│   ├── custom_list_screen.dart   # Custom list management
 │   └── ...
 ├── services/                      # Business logic
 │   ├── wikipedia_service.dart    # Wikipedia API integration
@@ -289,6 +299,9 @@ Having issues? Here are some resources:
 - [ ] **AI opponents** for single-player practice
 
 ### Recently Added ✅
+- [x] **Custom Lists Feature** - create, save, and manage curated Wikipedia page collections
+- [x] **Animated UI Components** - morphing buttons with squircle-to-circle transitions and elastic bounces
+- [x] **Interactive Page Cards** - staggered entrance animations with hover effects and tap feedback
 - [x] **Enhanced race path display** with horizontal layouts, icons, and page descriptions
 - [x] **Simplified countdown screen** optimized for all screen sizes and orientations
 - [x] **Improved responsive design** with 4 breakpoints (mobile, small, medium, large screens)
@@ -307,6 +320,8 @@ Having issues? Here are some resources:
 - [x] 10 beautiful themes with Material 3 design system
 - [x] **Complete cross-platform support** (Android, iOS, Web, Windows, macOS, Linux)
 - [x] **Fully responsive design** adapting from mobile to ultra-wide displays
+- [x] **Custom Lists System** - create, save, and manage Wikipedia page collections
+- [x] **Advanced Animations** - morphing UI components with elastic bounces and smooth transitions
 - [x] Custom page input functionality with validation
 - [x] Comprehensive race history and data export capabilities
 
