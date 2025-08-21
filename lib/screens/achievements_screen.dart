@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import '../models/achievement.dart';
 import '../models/player.dart';
 import '../services/achievement_service.dart';
+import '../services/storage_service.dart';
 import 'user_selector_screen.dart';
 
 class AchievementsScreen extends StatefulWidget {
@@ -88,6 +92,119 @@ class _AchievementsScreenState extends State<AchievementsScreen> with TickerProv
     }
   }
 
+  Future<void> _exportAllData() async {
+    try {
+      await StorageService.instance.shareAllData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Data exported successfully!'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error exporting data: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _importData() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = File(result.files.first.path!);
+      final jsonString = await file.readAsString();
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      // Show confirmation dialog
+      if (!mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Import Data'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('This will replace all current data with the imported data.'),
+              const SizedBox(height: 16),
+              if (data['exported_at'] != null)
+                Text(
+                  'Export date: ${DateTime.parse(data['exported_at']).toLocal()}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              if (data['app_version'] != null)
+                Text(
+                  'App version: ${data['app_version']}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              const SizedBox(height: 16),
+              Text(
+                'Are you sure you want to continue?',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Import'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await StorageService.instance.importAllData(data);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Data imported successfully! Please restart the app.'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+          
+          // Reload data
+          await _loadData();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error importing data: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,15 +213,67 @@ class _AchievementsScreenState extends State<AchievementsScreen> with TickerProv
             ? Text('${_selectedPlayer!.name}\'s Achievements')
             : const Text('Achievements'),
         actions: [
-          if (_selectedPlayer != null)
-            IconButton(
-              icon: const Icon(Icons.person),
-              tooltip: 'Switch User',
-              onPressed: _showUserSelector,
-            ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'export':
+                  _exportAllData();
+                  break;
+                case 'import':
+                  _importData();
+                  break;
+                case 'switch_user':
+                  _showUserSelector();
+                  break;
+                case 'refresh':
+                  _loadData();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.upload),
+                    SizedBox(width: 8),
+                    Text('Export All Data'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(Icons.download),
+                    SizedBox(width: 8),
+                    Text('Import Data'),
+                  ],
+                ),
+              ),
+              if (_selectedPlayer != null)
+                const PopupMenuItem(
+                  value: 'switch_user',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person),
+                      SizedBox(width: 8),
+                      Text('Switch User'),
+                    ],
+                  ),
+                ),
+              const PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 8),
+                    Text('Refresh'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
         bottom: TabBar(

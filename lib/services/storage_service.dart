@@ -241,4 +241,93 @@ class StorageService {
       return null;
     }
   }
+
+  // Full Data Export/Import Methods
+  Future<Map<String, dynamic>> exportAllData() async {
+    await init();
+    final allData = <String, dynamic>{};
+    
+    // Get all shared preferences keys
+    final prefs = _prefs!;
+    final keys = prefs.getKeys();
+    
+    // Export all data
+    for (final key in keys) {
+      final value = prefs.get(key);
+      if (value is String) {
+        try {
+          // Try to parse as JSON, if it fails, keep as string
+          allData[key] = jsonDecode(value);
+        } catch (e) {
+          allData[key] = value;
+        }
+      } else {
+        allData[key] = value;
+      }
+    }
+    
+    return {
+      'data': allData,
+      'exported_at': DateTime.now().toIso8601String(),
+      'app_version': '1.0.0',
+      'export_type': 'full_backup',
+    };
+  }
+
+  Future<void> importAllData(Map<String, dynamic> importData) async {
+    await init();
+    final prefs = _prefs!;
+    
+    if (!importData.containsKey('data')) {
+      throw Exception('Invalid import data format');
+    }
+    
+    final data = importData['data'] as Map<String, dynamic>;
+    
+    // Clear existing data first
+    await prefs.clear();
+    
+    // Import all data
+    for (final entry in data.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      
+      if (value is String) {
+        await prefs.setString(key, value);
+      } else if (value is int) {
+        await prefs.setInt(key, value);
+      } else if (value is double) {
+        await prefs.setDouble(key, value);
+      } else if (value is bool) {
+        await prefs.setBool(key, value);
+      } else if (value is List<String>) {
+        await prefs.setStringList(key, value);
+      } else {
+        // Convert complex objects back to JSON strings
+        await prefs.setString(key, jsonEncode(value));
+      }
+    }
+  }
+
+  Future<void> shareAllData() async {
+    try {
+      final data = await exportAllData();
+      final jsonString = jsonEncode(data);
+      
+      // Save to temporary file
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final file = File('${directory.path}/wikipedia_racer_backup_$timestamp.json');
+      await file.writeAsString(jsonString);
+      
+      // Share the file
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Wikipedia Racer - Full Data Backup',
+        subject: 'Wikipedia Racer Data Export',
+      );
+    } catch (e) {
+      throw Exception('Failed to export data: $e');
+    }
+  }
 }

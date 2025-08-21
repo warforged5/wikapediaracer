@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/custom_list.dart';
 import '../services/storage_service.dart';
 import 'race_screen.dart';
@@ -175,6 +176,25 @@ class _CustomListScreenState extends State<CustomListScreen> {
     }
   }
 
+  void _copyList(CustomList list) {
+    final pagesText = list.pages.join(', ');
+    Clipboard.setData(ClipboardData(text: pagesText));
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied "${list.name}" pages to clipboard'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        action: SnackBarAction(
+          label: 'Paste',
+          textColor: Theme.of(context).colorScheme.onPrimary,
+          onPressed: () {
+            _pagesController.text = pagesText;
+          },
+        ),
+      ),
+    );
+  }
+
   void _startRaceWithPages(List<String> pages) {
     Navigator.push(
       context,
@@ -273,11 +293,17 @@ class _CustomListScreenState extends State<CustomListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
+                              onPressed: () => _copyList(list),
+                              icon: const Icon(Icons.content_copy),
+                              tooltip: 'Copy pages to clipboard',
+                            ),
+                            IconButton(
                               onPressed: () => _deleteList(list),
                               icon: Icon(
                                 Icons.delete,
                                 color: Theme.of(context).colorScheme.error,
                               ),
+                              tooltip: 'Delete list',
                             ),
                           ],
                         ),
