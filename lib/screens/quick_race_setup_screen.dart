@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/player.dart';
+import '../services/storage_service.dart';
 import 'race_screen.dart';
 import 'custom_list_screen.dart';
 
@@ -12,8 +13,10 @@ class QuickRaceSetupScreen extends StatefulWidget {
 
 class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
   final List<TextEditingController> _playerControllers = [];
+  final List<Player> _selectedProfilePlayers = [];
   int _rounds = 3;
   bool _isLoading = false;
+  List<Player> _savedPlayers = [];
 
   @override
   void initState() {
@@ -21,6 +24,29 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
     // Start with 2 default players
     _playerControllers.add(TextEditingController(text: 'Player 1'));
     _playerControllers.add(TextEditingController(text: 'Player 2'));
+    _loadSavedPlayers();
+  }
+
+  Future<void> _loadSavedPlayers() async {
+    try {
+      // Get all saved players and players from race results
+      final savedPlayers = await StorageService.instance.getPlayers();
+      final results = await StorageService.instance.getRaceResults();
+      final Set<Player> uniquePlayers = {};
+      
+      for (final result in results) {
+        uniquePlayers.addAll(result.participants);
+      }
+      
+      final allPlayers = Set<Player>.from(savedPlayers);
+      allPlayers.addAll(uniquePlayers);
+      
+      setState(() {
+        _savedPlayers = allPlayers.toList()..sort((a, b) => a.name.compareTo(b.name));
+      });
+    } catch (e) {
+      // Handle error silently or show a message if needed
+    }
   }
 
   @override
@@ -32,17 +58,17 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
   }
 
   void _addPlayer() {
-    if (_playerControllers.length < 8) {
+    if (_playerControllers.length + _selectedProfilePlayers.length < 8) {
       setState(() {
         _playerControllers.add(
-          TextEditingController(text: 'Player ${_playerControllers.length + 1}'),
+          TextEditingController(text: 'Player ${_playerControllers.length + _selectedProfilePlayers.length + 1}'),
         );
       });
     }
   }
 
   void _removePlayer(int index) {
-    if (_playerControllers.length > 2) {
+    if (_playerControllers.length + _selectedProfilePlayers.length > 2) {
       setState(() {
         _playerControllers[index].dispose();
         _playerControllers.removeAt(index);
@@ -50,14 +76,27 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
     }
   }
 
+  void _removeProfilePlayer(int index) {
+    if (_playerControllers.length + _selectedProfilePlayers.length > 2) {
+      setState(() {
+        _selectedProfilePlayers.removeAt(index);
+      });
+    }
+  }
+
   Future<void> _startRace() async {
-    final playerNames = _playerControllers
+    // Combine text field players and selected profile players
+    final textPlayers = _playerControllers
         .map((c) => c.text.trim())
         .where((name) => name.isNotEmpty)
-        .toSet() // Remove duplicates
+        .map((name) => Player(name: name))
+        .toList();
+    
+    final allPlayers = <Player>[...textPlayers, ..._selectedProfilePlayers]
+        .toSet() // Remove duplicates by ID
         .toList();
 
-    if (playerNames.length < 2) {
+    if (allPlayers.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('At least 2 unique players are required')),
       );
@@ -67,14 +106,12 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final players = playerNames.map((name) => Player(name: name)).toList();
-      
       if (mounted) {
         final result = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
             builder: (context) => RaceScreen(
-              players: players,
+              players: allPlayers,
               rounds: _rounds,
               groupId: null, // Quick race - no group
             ),
@@ -99,29 +136,100 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
   }
 
   void _navigateToCustomList() {
-    final playerNames = _playerControllers
+    // Combine text field players and selected profile players
+    final textPlayers = _playerControllers
         .map((c) => c.text.trim())
         .where((name) => name.isNotEmpty)
-        .toSet()
+        .map((name) => Player(name: name))
+        .toList();
+    
+    final allPlayers = <Player>[...textPlayers, ..._selectedProfilePlayers]
+        .toSet() // Remove duplicates by ID
         .toList();
 
-    if (playerNames.length < 2) {
+    if (allPlayers.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('At least 2 unique players are required')),
       );
       return;
     }
-
-    final players = playerNames.map((name) => Player(name: name)).toList();
     
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CustomListScreen(
-          players: players,
+          players: allPlayers,
           rounds: _rounds,
           groupId: null,
         ),
+      ),
+    );
+  }
+
+  Future<void> _showProfileSelector() async {
+    if (_savedPlayers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No saved profiles found')),
+      );
+      return;
+    }
+
+    final selectedProfiles = await showDialog<List<Player>>(
+      context: context,
+      builder: (context) => _ProfileSelectorDialog(
+        availableProfiles: _savedPlayers,
+        alreadySelected: _selectedProfilePlayers,
+      ),
+    );
+
+    if (selectedProfiles != null) {
+      setState(() {
+        _selectedProfilePlayers.clear();
+        _selectedProfilePlayers.addAll(selectedProfiles);
+      });
+    }
+  }
+
+  Widget _buildPlayerTextField(int index) {
+    return TextField(
+      controller: _playerControllers[index],
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        prefixIcon: const Icon(Icons.person),
+        labelText: 'Player ${index + 1}',
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+      ),
+    );
+  }
+
+  Widget _buildProfilePlayerCard(int index) {
+    final player = _selectedProfilePlayers[index];
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: Text(
+            player.name.substring(0, 1).toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(player.name),
+        subtitle: const Text('Saved Profile'),
+        trailing: (_playerControllers.length + _selectedProfilePlayers.length > 2)
+            ? IconButton(
+                onPressed: () => _removeProfilePlayer(index),
+                icon: Icon(
+                  Icons.remove_circle,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -161,48 +269,55 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: _playerControllers.length < 8 ? _addPlayer : null,
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Player'),
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Row(
+                        children: [
+                          if (_savedPlayers.isNotEmpty)
+                            OutlinedButton.icon(
+                              onPressed: (_playerControllers.length + _selectedProfilePlayers.length < 8) 
+                                  ? _showProfileSelector 
+                                  : null,
+                              icon: const Icon(Icons.people, size: 18),
+                              label: const Text('Add Profile'),
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          if (_savedPlayers.isNotEmpty) const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: (_playerControllers.length + _selectedProfilePlayers.length < 8) 
+                                ? _addPlayer 
+                                : null,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Add Player'),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Customize player names or keep the defaults',
+                    'Enter custom names or select from saved profiles',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Player name fields
+                  // Text input fields
                   ...List.generate(_playerControllers.length, (index) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _playerControllers[index],
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                prefixIcon: const Icon(Icons.person),
-                                labelText: 'Player ${index + 1}',
-                                filled: true,
-                                fillColor: Theme.of(context).colorScheme.surface,
-                              ),
-                            ),
-                          ),
-                          if (_playerControllers.length > 2)
+                          Expanded(child: _buildPlayerTextField(index)),
+                          if (_playerControllers.length + _selectedProfilePlayers.length > 2)
                             IconButton(
                               onPressed: () => _removePlayer(index),
                               icon: Icon(
@@ -212,6 +327,14 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
                             ),
                         ],
                       ),
+                    );
+                  }),
+                  
+                  // Profile player cards
+                  ...List.generate(_selectedProfilePlayers.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildProfilePlayerCard(index),
                     );
                   }),
                 ],
@@ -575,6 +698,119 @@ class _RoundSelectorButtonState extends State<_RoundSelectorButton>
           );
         },
       ),
+    );
+  }
+}
+
+class _ProfileSelectorDialog extends StatefulWidget {
+  final List<Player> availableProfiles;
+  final List<Player> alreadySelected;
+
+  const _ProfileSelectorDialog({
+    required this.availableProfiles,
+    required this.alreadySelected,
+  });
+
+  @override
+  State<_ProfileSelectorDialog> createState() => _ProfileSelectorDialogState();
+}
+
+class _ProfileSelectorDialogState extends State<_ProfileSelectorDialog> {
+  final Set<Player> _selectedPlayers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPlayers.addAll(widget.alreadySelected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.people),
+          SizedBox(width: 8),
+          Text('Select Profiles'),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: Column(
+          children: [
+            Text(
+              'Choose one or more profiles to add to the race',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.availableProfiles.length,
+                itemBuilder: (context, index) {
+                  final player = widget.availableProfiles[index];
+                  final isSelected = _selectedPlayers.contains(player);
+                  
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: CheckboxListTile(
+                      value: isSelected,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedPlayers.add(player);
+                          } else {
+                            _selectedPlayers.remove(player);
+                          }
+                        });
+                      },
+                      secondary: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          player.name.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        player.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: FutureBuilder<Map<String, int>>(
+                        future: StorageService.instance.getPlayerStats(player.id),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            final stats = snapshot.data!;
+                            return Text(
+                              '${stats['wins']} wins • ${stats['totalRaces']} races',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            );
+                          }
+                          return const Text('Loading stats...');
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _selectedPlayers.toList()),
+          child: Text('Add ${_selectedPlayers.length} Profile${_selectedPlayers.length == 1 ? '' : 's'}'),
+        ),
+      ],
     );
   }
 }

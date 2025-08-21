@@ -30,6 +30,10 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
     setState(() => _isLoading = true);
     
     try {
+      // Get all saved players
+      final savedPlayers = await StorageService.instance.getPlayers();
+      
+      // Also get players from race results for backward compatibility
       final results = await StorageService.instance.getRaceResults();
       final Set<Player> uniquePlayers = {};
       
@@ -37,8 +41,12 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
         uniquePlayers.addAll(result.participants);
       }
       
+      // Combine saved players with race participants
+      final allPlayers = Set<Player>.from(savedPlayers);
+      allPlayers.addAll(uniquePlayers);
+      
       setState(() {
-        _allPlayers = uniquePlayers.toList()..sort((a, b) => a.name.compareTo(b.name));
+        _allPlayers = allPlayers.toList()..sort((a, b) => a.name.compareTo(b.name));
         _isLoading = false;
       });
     } catch (e) {
@@ -51,11 +59,51 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
     }
   }
 
-  void _createNewUser() {
+  Future<void> _createNewUser() async {
     final name = _newUserController.text.trim();
-    if (name.isNotEmpty) {
+    if (name.isEmpty) return;
+    
+    // Check if player with same name already exists
+    final existingPlayer = _allPlayers.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
+    if (existingPlayer != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Player with name "$name" already exists'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return;
+    }
+    
+    try {
       final newPlayer = Player(name: name);
-      Navigator.pop(context, newPlayer);
+      // Save the player permanently
+      await StorageService.instance.savePlayer(newPlayer);
+      
+      // Clear the text field
+      _newUserController.clear();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile "$name" created successfully!'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+        
+        Navigator.pop(context, newPlayer);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating profile: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -141,7 +189,7 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
                               const SizedBox(width: 12),
                               FilledButton.tonal(
                                 onPressed: _createNewUser,
-                                child: const Text('Create'),
+                                child: const Icon(Icons.add),
                               ),
                             ],
                           ),

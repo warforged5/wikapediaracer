@@ -13,6 +13,7 @@ class StorageService {
   static const String _raceResultsKey = 'race_results';
   static const String _currentPlayerKey = 'current_player';
   static const String _customListsKey = 'custom_lists';
+  static const String _playersKey = 'players';
 
   static StorageService? _instance;
   static StorageService get instance => _instance ??= StorageService._();
@@ -172,6 +173,50 @@ class StorageService {
   Future<void> clearCurrentPlayer() async {
     await init();
     await _prefs?.remove(_currentPlayerKey);
+  }
+
+  // Player Storage Methods
+  Future<List<Player>> getPlayers() async {
+    await init();
+    final playersJson = _prefs?.getString(_playersKey);
+    if (playersJson == null) return [];
+    
+    final List<dynamic> playersList = jsonDecode(playersJson);
+    return playersList.map((json) => Player.fromJson(json)).toList();
+  }
+
+  Future<void> savePlayers(List<Player> players) async {
+    await init();
+    final playersJson = jsonEncode(players.map((p) => p.toJson()).toList());
+    await _prefs?.setString(_playersKey, playersJson);
+  }
+
+  Future<void> savePlayer(Player player) async {
+    final players = await getPlayers();
+    final index = players.indexWhere((p) => p.id == player.id);
+    
+    if (index >= 0) {
+      players[index] = player;
+    } else {
+      players.add(player);
+    }
+    
+    await savePlayers(players);
+  }
+
+  Future<Player?> getPlayer(String playerId) async {
+    final players = await getPlayers();
+    try {
+      return players.firstWhere((p) => p.id == playerId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> deletePlayer(String playerId) async {
+    final players = await getPlayers();
+    players.removeWhere((p) => p.id == playerId);
+    await savePlayers(players);
   }
 
   // Generic Data Storage Methods
