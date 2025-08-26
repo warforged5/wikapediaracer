@@ -107,6 +107,57 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
     }
   }
 
+  Future<void> _deletePlayer(Player player) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Profile'),
+        content: Text(
+          'Are you sure you want to delete "${player.name}"?\n\nThis will permanently remove the profile but keep all race history.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await StorageService.instance.deletePlayer(player.id);
+      await _loadPlayers(); // Refresh the list
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile "${player.name}" deleted successfully'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting profile: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -252,7 +303,20 @@ class _UserSelectorScreenState extends State<UserSelectorScreen> {
                                 return const Text('Loading stats...');
                               },
                             ),
-                            trailing: const Icon(Icons.arrow_forward_ios),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  onPressed: () => _deletePlayer(player),
+                                  tooltip: 'Delete Profile',
+                                ),
+                                const Icon(Icons.arrow_forward_ios),
+                              ],
+                            ),
                             onTap: () => Navigator.pop(context, player),
                           ),
                         );

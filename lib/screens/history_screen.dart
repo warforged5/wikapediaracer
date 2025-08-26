@@ -85,14 +85,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Theme.of(context).colorScheme.surface,
-                  Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                ],
-              ),
+              color: Theme.of(context).colorScheme.surface,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,22 +97,8 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFFFFD700),
-                            const Color(0xFFFFB400),
-                          ],
-                        ),
+                        color: const Color(0xFFFFD700),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: const Icon(Icons.emoji_events, color: Colors.white, size: 28),
                     ),
@@ -170,20 +149,8 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.green.shade400,
-                                Colors.green.shade600,
-                              ],
-                            ),
+                            color: Colors.green.shade500,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withValues(alpha: 0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -273,20 +240,8 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Theme.of(context).colorScheme.primary,
-                                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                                      ],
-                                    ),
+                                    color: Theme.of(context).colorScheme.primary,
                                     shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
                                   ),
                                   child: Center(
                                     child: Text(
@@ -381,179 +336,389 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
   void _showRaceDetails(RaceResult race) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFFFD700),
-                    const Color(0xFFFFB400),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.info_outline_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Race Details'),
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Race Details',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Winner section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFFFFD700).withValues(alpha: 0.1),
-                      const Color(0xFFFFB400).withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.emoji_events,
-                      color: Color(0xFFFFD700),
-                      size: 24,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Winner section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      width: 2,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        '${race.winner.name} won!',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.emoji_events,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 48,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '🏆 ${race.winner.name} Wins!',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFB8860B),
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total Race Time: ${_formatDuration(race.totalDuration)}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Enhanced stats grid with more details
+                Text(
+                  'Race Statistics',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.5,
+                  children: [
+                    _buildDetailStatCard('Total Time', _formatDuration(race.totalDuration), Icons.timer, Theme.of(context).colorScheme.primary),
+                    _buildDetailStatCard('Rounds', race.rounds.length.toString(), Icons.sports_score, Theme.of(context).colorScheme.secondary),
+                    _buildDetailStatCard('Players', race.participants.length.toString(), Icons.people, Theme.of(context).colorScheme.tertiary),
+                    _buildDetailStatCard('Completed', '${race.completedAt.day}/${race.completedAt.month}/${race.completedAt.year}', Icons.schedule, Theme.of(context).colorScheme.error),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Stats grid
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDetailStat('Total Time', _formatDuration(race.totalDuration), Icons.timer),
+                const SizedBox(height: 24),
+                
+                // Final standings section
+                Text(
+                  'Final Standings',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildDetailStat('Rounds', race.rounds.length.toString(), Icons.sports_score),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildDetailStat('Players', race.participants.length.toString(), Icons.people),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              // Round breakdown
-              Text(
-                'Round Breakdown',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              const SizedBox(height: 12),
-              
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: race.rounds.length,
-                  itemBuilder: (context, index) {
-                    final round = race.rounds[index];
-                    final roundWinner = race.participants.firstWhere((p) => p.id == round.winnerId);
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${round.roundNumber}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                const SizedBox(height: 16),
+                
+                ...race.participants.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final participant = entry.value;
+                  final wins = race.playerWins[participant.id] ?? 0;
+                  final isWinner = participant.id == race.winnerId;
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isWinner 
+                          ? Theme.of(context).colorScheme.primaryContainer 
+                          : Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isWinner ? Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ) : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: isWinner 
+                                ? Theme.of(context).colorScheme.primary 
+                                : Theme.of(context).colorScheme.outline,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                participant.name,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isWinner 
+                                      ? Theme.of(context).colorScheme.onPrimaryContainer 
+                                      : null,
+                                ),
+                              ),
+                              Text(
+                                '$wins rounds won • ${(wins / race.rounds.length * 100).toStringAsFixed(1)}% win rate',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isWinner)
+                          Icon(
+                            Icons.emoji_events,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 24,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                const SizedBox(height: 24),
+                
+                // Detailed round breakdown
+                Text(
+                  'Detailed Round Breakdown',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                ...race.rounds.map((round) {
+                  final roundWinner = race.participants.firstWhere((p) => p.id == round.winnerId);
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  roundWinner.name,
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    'Round ${round.roundNumber}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
-                                Text(
-                                  _formatDuration(round.duration),
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    _formatDuration(round.duration),
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            
+                            // Winner info
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.emoji_events_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Winner: ',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                Text(
+                                  roundWinner.name,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            
+                            // Race path with enhanced details
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.route_rounded,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Racing Path',
+                                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            round.startPage.title,
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        child: Icon(
+                                          Icons.arrow_forward,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            round.endPage.title,
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (round.startPage.extract!.isNotEmpty || round.endPage.extract!.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    if (round.startPage.extract!.isNotEmpty)
+                                      Text(
+                                        '📖 Start: ${round.startPage.extract}',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    if (round.startPage.extract!.isNotEmpty && round.endPage.extract!.isNotEmpty)
+                                      const SizedBox(height: 4),
+                                    if (round.endPage.extract!.isNotEmpty)
+                                      Text(
+                                        '🎯 Target: ${round.endPage.extract}',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                  );
+                }).toList(),
+                
+                const SizedBox(height: 24),
+                
+                // Race metadata
+                Text(
+                  'Race Information',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildInfoRow('Race Type', race.groupId != null ? 'Group Race' : 'Quick Race', Icons.category),
+                        const SizedBox(height: 12),
+                        _buildInfoRow('Completed At', '${race.completedAt.day}/${race.completedAt.month}/${race.completedAt.year} at ${race.completedAt.hour}:${race.completedAt.minute.toString().padLeft(2, '0')}', Icons.schedule),
+                        const SizedBox(height: 12),
+                        _buildInfoRow('Total Duration', _formatDuration(race.totalDuration), Icons.timer),
+                        const SizedBox(height: 12),
+                        _buildInfoRow('Average Round Time', _formatDuration(Duration(seconds: race.totalDuration.inSeconds ~/ race.rounds.length)), Icons.speed),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-        actions: [
-          FilledButton.tonal(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
@@ -590,6 +755,67 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDetailStatCard(String label, String value, IconData icon, Color color) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 32,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(width: 12),
+        Text(
+          '$label: ',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -721,14 +947,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5),
-                          ],
-                        ),
+                        color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1146,20 +1365,8 @@ class _AnimatedTrophyIconState extends State<_AnimatedTrophyIcon>
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.lerp(const Color(0xFFFFD700), const Color(0xFFFFE55C), _shimmerAnimation.value)!,
-                  const Color(0xFFFFB400),
-                ],
-              ),
+              color: Color.lerp(const Color(0xFFFFD700), const Color(0xFFFFE55C), _shimmerAnimation.value),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.3 + (0.2 * _shimmerAnimation.value)),
-                  blurRadius: 6 + (4 * _shimmerAnimation.value),
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: const Icon(
               Icons.leaderboard_rounded,
