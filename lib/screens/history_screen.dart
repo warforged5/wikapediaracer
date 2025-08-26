@@ -348,7 +348,10 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: Column(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Winner section
@@ -403,10 +406,10 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
+                  crossAxisCount: 4,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.5,
+                  childAspectRatio: 1.2,
                   children: [
                     _buildDetailStatCard('Total Time', _formatDuration(race.totalDuration), Icons.timer, Theme.of(context).colorScheme.primary),
                     _buildDetailStatCard('Rounds', race.rounds.length.toString(), Icons.sports_score, Theme.of(context).colorScheme.secondary),
@@ -512,11 +515,11 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                 ...race.rounds.map((round) {
                   final roundWinner = race.participants.firstWhere((p) => p.id == round.winnerId);
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
+                    margin: const EdgeInsets.only(bottom: 12),
                     child: Card(
-                      elevation: 2,
+                      elevation: 1,
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -554,35 +557,31 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             
-                            // Winner info
+                            // Winner info - more compact
                             Row(
                               children: [
                                 Icon(
                                   Icons.emoji_events_outlined,
                                   color: Theme.of(context).colorScheme.primary,
-                                  size: 20,
+                                  size: 16,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Text(
-                                  'Winner: ',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                Text(
-                                  roundWinner.name,
+                                  '${roundWinner.name} won',
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             
-                            // Race path with enhanced details
+                            // Race path with enhanced details - more compact
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: Theme.of(context).colorScheme.surfaceContainer,
                                 borderRadius: BorderRadius.circular(8),
@@ -612,7 +611,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                     children: [
                                       Expanded(
                                         child: Container(
-                                          padding: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(6),
@@ -636,7 +635,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                       ),
                                       Expanded(
                                         child: Container(
-                                          padding: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(6),
@@ -653,7 +652,7 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                                     ],
                                   ),
                                   if (round.startPage.extract!.isNotEmpty || round.endPage.extract!.isNotEmpty) ...[
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 8),
                                     if (round.startPage.extract!.isNotEmpty)
                                       Text(
                                         '📖 Start: ${round.startPage.extract}',
@@ -715,7 +714,9 @@ class _HistoryScreenState extends State<HistoryScreen> with TickerProviderStateM
                   ),
                 ),
                 const SizedBox(height: 24),
-              ],
+                ],
+              ),
+              ),
             ),
           ),
         ),
