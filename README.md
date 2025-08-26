@@ -46,10 +46,8 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 
 ### 🎨 Modern Design
 - **Material Design 3** with expressive theming
-- **10 beautiful themes** including light and dark options
+- **Many beautiful themes** including light and dark options
 - **Responsive design** optimized for mobile, tablet, and web
-- **Advanced animations** - morphing buttons with squircle-to-circle transitions and elastic bounces
-- **Animated page cards** with staggered entrance animations and interactive feedback
 - **Clean, intuitive interface** with delightful micro-interactions
 - **Accessibility-focused** with proper contrast and navigation
 
