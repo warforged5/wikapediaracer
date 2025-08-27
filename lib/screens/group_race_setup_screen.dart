@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/group.dart';
 import 'race_screen.dart';
+import 'custom_list_screen.dart';
 
 class GroupRaceSetupScreen extends StatefulWidget {
   final Group group;
@@ -90,6 +91,30 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
     });
   }
 
+  void _navigateToCustomList() {
+    if (_selectedPlayerIds.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least 2 players must be selected')),
+      );
+      return;
+    }
+
+    final selectedPlayers = widget.group.players
+        .where((p) => _selectedPlayerIds.contains(p.id))
+        .toList();
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomListScreen(
+          players: selectedPlayers,
+          rounds: _rounds,
+          groupId: widget.group.id,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,13 +152,80 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                       ),
                       Row(
                         children: [
-                          TextButton(
-                            onPressed: _selectAllPlayers,
-                            child: const Text('All'),
-                          ),
-                          TextButton(
-                            onPressed: _clearSelection,
-                            child: const Text('None'),
+                          Container(
+                            height: 36,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _selectAllPlayers,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(20),
+                                      bottomLeft: Radius.circular(20),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      height: 34,
+                                      decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(19),
+                                          bottomLeft: Radius.circular(19),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'All',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 2,
+                                  height: 20,
+                                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _clearSelection,
+                                    borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(20),
+                                      bottomRight: Radius.circular(20),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      height: 34,
+                                      decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(19),
+                                          bottomRight: Radius.circular(19),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'None',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -288,7 +380,50 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+
+          // Custom List Button
+          Container(
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                width: 2,
+              ),
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _navigateToCustomList(),
+                borderRadius: BorderRadius.circular(28),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.list_alt,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Use Custom List',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
 
           // Start Race Button
           SizedBox(
