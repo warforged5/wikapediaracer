@@ -17,6 +17,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isThemeButtonHovered = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,26 +55,40 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.palette_rounded,
-                color: Theme.of(context).colorScheme.onTertiaryContainer,
-              ),
-              tooltip: 'Change Theme',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ThemeSelectorScreen(
-                      onThemeChanged: widget.onThemeChanged,
-                    ),
+            child: MouseRegion(
+              onEnter: (_) => setState(() => _isThemeButtonHovered = true),
+              onExit: (_) => setState(() => _isThemeButtonHovered = false),
+              cursor: SystemMouseCursors.click,
+              child: AnimatedScale(
+                scale: _isThemeButtonHovered ? 1.05 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  decoration: BoxDecoration(
+                    color: _isThemeButtonHovered 
+                        ? Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.8)
+                        : Theme.of(context).colorScheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.palette_rounded,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
+                    tooltip: 'Change Theme',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ThemeSelectorScreen(
+                            onThemeChanged: widget.onThemeChanged,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -474,81 +490,106 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 110,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(55), // Pill shape
-          color: Theme.of(context).colorScheme.surface,
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(55),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(55), // Pill shape
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(30), // Circular icon container
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          cursor: SystemMouseCursors.click,
+          child: AnimatedScale(
+            scale: isHovered ? 1.03 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            child: SizedBox(
+              width: double.infinity,
+              height: 110,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(55), // Pill shape
+                  color: isHovered 
+                      ? Theme.of(context).colorScheme.surface
+                      : Theme.of(context).colorScheme.surface,
+                  border: Border.all(
+                    color: isHovered 
+                        ? color.withValues(alpha: 0.4)
+                        : color.withValues(alpha: 0.2),
+                    width: 1.5,
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isHovered 
+                          ? color.withValues(alpha: 0.2)
+                          : color.withValues(alpha: 0.1),
+                      blurRadius: isHovered ? 8 : 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(55),
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(55), // Pill shape
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: isHovered 
+                                ? color.withValues(alpha: 0.18)
+                                : color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(30), // Circular icon container
+                          ),
+                          child: Icon(
+                            icon,
+                            color: color,
+                            size: 28,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                title,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: isHovered 
+                                ? color.withValues(alpha: 0.15)
+                                : color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.arrow_forward_rounded,
+                            color: color,
+                            size: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: color,
-                    size: 16,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    ));
+        ));
+      },
+    );
   }
 
   Widget _buildActionCard(
@@ -560,82 +601,114 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
     bool isPrimary = false,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      height: isPrimary ? 120 : 110,
-      child: Card(
-        elevation: 2,
-        shadowColor: color.withValues(alpha: 0.1),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Theme.of(context).colorScheme.surface,
-              border: Border.all(
-                color: color.withValues(alpha: 0.2),
-                width: 1.5,
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          cursor: SystemMouseCursors.click,
+          child: AnimatedScale(
+            scale: isHovered ? 1.03 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            child: SizedBox(
+              width: double.infinity,
+              height: isPrimary ? 120 : 110,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border.all(
+                    color: isHovered 
+                        ? color.withValues(alpha: 0.4)
+                        : color.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isHovered 
+                          ? color.withValues(alpha: 0.2)
+                          : color.withValues(alpha: 0.1),
+                      blurRadius: isHovered ? 8 : 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: isHovered 
+                                  ? color.withValues(alpha: 0.18)
+                                  : color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              icon,
+                              color: color,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  title,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (subtitle.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subtitle,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: isHovered 
+                                  ? color.withValues(alpha: 0.15)
+                                  : color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward_rounded,
+                              color: color,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: color,
-                    size: 16,
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
