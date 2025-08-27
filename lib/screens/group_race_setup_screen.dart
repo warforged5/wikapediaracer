@@ -324,43 +324,10 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                       final rounds = index + 1;
                       final isSelected = _rounds == rounds;
                       
-                      return GestureDetector(
+                      return _RoundSelectorButton(
+                        rounds: rounds,
+                        isSelected: isSelected,
                         onTap: () => setState(() => _rounds = rounds),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.surface,
-                            border: Border.all(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: isSelected ? [
-                              BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ] : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$rounds',
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
                       );
                     }),
                   ),
@@ -487,6 +454,156 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RoundSelectorButton extends StatefulWidget {
+  final int rounds;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _RoundSelectorButton({
+    required this.rounds,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_RoundSelectorButton> createState() => _RoundSelectorButtonState();
+}
+
+class _RoundSelectorButtonState extends State<_RoundSelectorButton>
+    with TickerProviderStateMixin {
+  late AnimationController _morphController;
+  late AnimationController _bounceController;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _scaleAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _morphController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    
+    // Morph from squircle (0.0) to circle (1.0)
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeOutCubic,
+    );
+    
+    // Scale animation for the bounce
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.12,
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.elasticOut,
+    ));
+    
+    if (widget.isSelected) {
+      _morphController.forward();
+      _bounceController.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_RoundSelectorButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    if (widget.isSelected != oldWidget.isSelected) {
+      if (widget.isSelected) {
+        _morphController.forward();
+        _bounceController.reset();
+        _bounceController.forward();
+      } else {
+        _morphController.reverse();
+        _bounceController.reset();
+      }
+    }
+  }
+  
+  @override
+  void dispose() {
+    _morphController.dispose();
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_morphAnimation, _scaleAnimation]),
+        builder: (context, child) {
+          // Calculate border radius: squircle (16) to circle (28)
+          final borderRadius = Tween<double>(
+            begin: 16.0, // Squircle
+            end: 28.0,   // Circle
+          ).evaluate(_morphAnimation);
+          
+          final scale = widget.isSelected 
+            ? (1.0 + (_scaleAnimation.value - 1.0)) 
+            : 1.0;
+          
+          return Transform.scale(
+            scale: scale,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surface,
+                border: Border.all(
+                  color: widget.isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+                  width: widget.isSelected ? 3 : 2,
+                ),
+                borderRadius: BorderRadius.circular(borderRadius),
+                boxShadow: widget.isSelected ? [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                    spreadRadius: 1,
+                  ),
+                ] : [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    color: widget.isSelected
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: widget.isSelected ? 18 : 16,
+                  ),
+                  child: Text('${widget.rounds}'),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
