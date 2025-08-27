@@ -117,15 +117,23 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 800;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.group.name} Race'),
         centerTitle: true,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: isLargeScreen ? _buildLargeScreenLayout(context) : _buildMobileLayout(context),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
           // Player Selection Section
           Card(
             elevation: 1,
@@ -454,6 +462,409 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
             ),
           ),
         ],
+      );
+  }
+
+  Widget _buildLargeScreenLayout(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        padding: const EdgeInsets.all(32),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left column - Player Selection and Rounds
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  // Player Selection Section
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Select Players',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Container(
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _selectAllPlayers,
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(22),
+                                          bottomLeft: Radius.circular(22),
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          height: 38,
+                                          decoration: const BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(21),
+                                              bottomLeft: Radius.circular(21),
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              'All',
+                                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 2,
+                                      height: 24,
+                                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                    ),
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _clearSelection,
+                                        borderRadius: const BorderRadius.only(
+                                          topRight: Radius.circular(22),
+                                          bottomRight: Radius.circular(22),
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          height: 38,
+                                          decoration: const BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(21),
+                                              bottomRight: Radius.circular(21),
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              'None',
+                                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_selectedPlayerIds.length} of ${widget.group.players.length} players selected',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Player checkboxes in a more compact layout
+                          ...widget.group.players.map((player) {
+                            final isSelected = _selectedPlayerIds.contains(player.id);
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: isSelected 
+                                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+                                      : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                color: isSelected
+                                  ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2)
+                                  : Theme.of(context).colorScheme.surface,
+                                child: CheckboxListTile(
+                                  value: isSelected,
+                                  onChanged: (value) => _togglePlayer(player.id),
+                                  title: Text(
+                                    player.name,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  subtitle: Text('${player.totalWins} wins • ${player.totalRaces} races'),
+                                  secondary: CircleAvatar(
+                                    backgroundColor: isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                    child: Text(
+                                      player.name.substring(0, 1).toUpperCase(),
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.onPrimary
+                                            : Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Rounds Section
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Number of Rounds',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Each round requires reaching a different Wikipedia page',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Round selector
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(6, (index) {
+                              final rounds = index + 1;
+                              final isSelected = _rounds == rounds;
+                              
+                              return _RoundSelectorButton(
+                                rounds: rounds,
+                                isSelected: isSelected,
+                                onTap: () => setState(() => _rounds = rounds),
+                              );
+                            }),
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Text(
+                              '$_rounds ${_rounds == 1 ? 'round' : 'rounds'} selected',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(width: 32),
+            
+            // Right column - Actions
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  
+                  // Custom List Button
+                  Container(
+                    height: 72,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(36),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _navigateToCustomList(),
+                        borderRadius: BorderRadius.circular(36),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.list_alt,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                'Use Custom List',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Start Race Button
+                  Container(
+                    height: 80,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: (_isLoading || _selectedPlayerIds.length < 2) ? null : _startRace,
+                        borderRadius: BorderRadius.circular(40),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isLoading)
+                                SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Icon(
+                                  Icons.play_arrow,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  size: 32,
+                                ),
+                              const SizedBox(width: 16),
+                              Text(
+                                _isLoading 
+                                    ? 'Starting Race...' 
+                                    : _selectedPlayerIds.length < 2 
+                                        ? 'Select 2+ Players'
+                                        : 'Start Race',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Info Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Theme.of(context).colorScheme.secondary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'This race will be saved to your group history and player statistics will be updated.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -236,19 +236,27 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 800;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quick Race Setup'),
         centerTitle: true,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Players Section
-          Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
+      body: isLargeScreen ? _buildLargeScreenLayout(context) : _buildMobileLayout(context),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Players Section
+        Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
@@ -547,6 +555,342 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
             ),
           ),
         ],
+      );
+  }
+
+  Widget _buildLargeScreenLayout(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        padding: const EdgeInsets.all(32),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left column - Players and Rounds
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  // Players Section
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Players',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  if (_savedPlayers.isNotEmpty)
+                                    OutlinedButton.icon(
+                                      onPressed: (_playerControllers.length + _selectedProfilePlayers.length < 8) 
+                                          ? _showProfileSelector 
+                                          : null,
+                                      icon: const Icon(Icons.people, size: 18),
+                                      label: const Text('Add Profile'),
+                                      style: OutlinedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  if (_savedPlayers.isNotEmpty) const SizedBox(width: 8),
+                                  OutlinedButton.icon(
+                                    onPressed: (_playerControllers.length + _selectedProfilePlayers.length < 8) 
+                                        ? _addPlayer 
+                                        : null,
+                                    icon: const Icon(Icons.add, size: 18),
+                                    label: const Text('Add Player'),
+                                    style: OutlinedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Enter custom names or select from saved profiles',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          
+                          // Player fields in a more compact layout for large screens
+                          ...List.generate(_playerControllers.length, (index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(child: _buildPlayerTextField(index)),
+                                  if (_playerControllers.length + _selectedProfilePlayers.length > 2)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8),
+                                      child: IconButton(
+                                        onPressed: () => _removePlayer(index),
+                                        icon: Icon(
+                                          Icons.remove_circle,
+                                          color: Theme.of(context).colorScheme.error,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          }),
+                          
+                          // Profile player cards
+                          ...List.generate(_selectedProfilePlayers.length, (index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildProfilePlayerCard(index),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Rounds Section
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Number of Rounds',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Each round requires reaching a different Wikipedia page',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Round selector
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(6, (index) {
+                              final rounds = index + 1;
+                              final isSelected = _rounds == rounds;
+                              
+                              return _RoundSelectorButton(
+                                rounds: rounds,
+                                isSelected: isSelected,
+                                onTap: () => setState(() => _rounds = rounds),
+                              );
+                            }),
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Text(
+                              '$_rounds ${_rounds == 1 ? 'round' : 'rounds'} selected',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(width: 32),
+            
+            // Right column - Actions
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  
+                  // Custom List Button
+                  Container(
+                    height: 72,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(36),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _navigateToCustomList(),
+                        borderRadius: BorderRadius.circular(36),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.list_alt,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                'Use Custom List',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Start Race Button
+                  Container(
+                    height: 80,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _isLoading ? null : _startRace,
+                        borderRadius: BorderRadius.circular(40),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isLoading)
+                                SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Icon(
+                                  Icons.play_arrow,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  size: 32,
+                                ),
+                              const SizedBox(width: 16),
+                              Text(
+                                _isLoading ? 'Starting Race...' : 'Start Race',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Info Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.flash_on,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Quick races are saved to your history and count toward achievements. Race fast and climb the leaderboard!',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
