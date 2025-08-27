@@ -713,7 +713,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
               flex: 2,
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
+                  
                   
                   // Custom List Button
                   Container(
@@ -834,10 +834,10 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                         width: 1,
                       ),
                     ),
@@ -845,7 +845,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                       children: [
                         Icon(
                           Icons.info_outline,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 28,
                         ),
                         const SizedBox(width: 12),
@@ -853,7 +853,7 @@ class _GroupRaceSetupScreenState extends State<GroupRaceSetupScreen> {
                           child: Text(
                             'This race will be saved to your group history and player statistics will be updated.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),

@@ -743,7 +743,7 @@ class _QuickRaceSetupScreenState extends State<QuickRaceSetupScreen> {
               flex: 2,
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
+                  
                   
                   // Custom List Button
                   Container(
