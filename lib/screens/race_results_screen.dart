@@ -104,104 +104,41 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
             // Confetti animation
             Positioned.fill(child: _buildConfetti()),
             
+            // Close button
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                  icon: Icon(
+                    Icons.close_rounded, 
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                  ),
+                ),
+              ),
+            ),
+            
             // Main content
             SlideTransition(
               position: _slideAnimation,
               child: Column(
                 children: [
-                  // Winner announcement header
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(isWeb ? 32 : 24),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                              icon: const Icon(Icons.close_rounded, color: Colors.white),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                'Race Complete',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 48), // Balance the close button
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        ScaleTransition(
-                          scale: _celebrationAnimation,
-                          child: Column(
-                            children: [
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(begin: 0.0, end: 1.0),
-                                duration: const Duration(milliseconds: 800),
-                                curve: Curves.bounceOut,
-                                builder: (context, value, child) {
-                                  return Transform.scale(
-                                    scale: 0.5 + (value * 0.5),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Icon(
-                                        Icons.emoji_events_rounded,
-                                        color: Theme.of(context).colorScheme.onPrimary,
-                                        size: 48,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                '${winner.name} Wins!',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Total Time: ${_formatDuration(widget.result.totalDuration)}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${widget.result.rounds.length} rounds completed',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Content area
+                  // Content area - now takes full space
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(isWeb ? 24 : 16),
@@ -393,6 +330,7 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
 
   Widget _buildWebResultsLayout() {
     final playerWins = widget.result.playerWins;
+    final winner = widget.result.winner;
     
     return Row(
       children: [
@@ -400,15 +338,66 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
         Expanded(
           flex: 2,
           child: Card(
-            elevation: 2,
+            elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Winner announcement in header
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        ScaleTransition(
+                          scale: _celebrationAnimation,
+                          child: Icon(
+                            Icons.emoji_events_rounded,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 48,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '${winner.name} Wins!',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Total Time: ${_formatDuration(widget.result.totalDuration)}',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${widget.result.rounds.length} rounds completed',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                   Text(
                     'Final Standings',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -426,21 +415,21 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 24),
         
         // Right Column - Round Breakdown
         Expanded(
           flex: 3,
           child: Card(
-            elevation: 2,
+            elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Round Breakdown',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -462,25 +451,85 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
   }
 
   Widget _buildMobileResultsLayout() {
+    final winner = widget.result.winner;
+    
     return Column(
       children: [
+        // Winner Announcement Card
+        Card(
+          elevation: 4,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                ScaleTransition(
+                  scale: _celebrationAnimation,
+                  child: Icon(
+                    Icons.emoji_events_rounded,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${winner.name} Wins!',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Total Time: ${_formatDuration(widget.result.totalDuration)}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${widget.result.rounds.length} rounds completed',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 20),
+        
         // Final Standings Card
         Expanded(
+          flex: 3,
           child: Card(
-            elevation: 2,
+            elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Final Standings',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
@@ -493,25 +542,26 @@ class _RaceResultsScreenState extends State<RaceResultsScreen>
           ),
         ),
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         
         // Round Breakdown Card
         Expanded(
+          flex: 4,
           child: Card(
-            elevation: 2,
+            elevation: 4,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Round Breakdown',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
