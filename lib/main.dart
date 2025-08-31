@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:uuid/uuid.dart';
 import 'screens/home_screen.dart';
 import 'services/storage_service.dart';
 import 'services/theme_service.dart';
+import 'services/supabase_service.dart';
 import 'themes/app_theme.dart';
 
 void main() async {
@@ -12,7 +14,40 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
   
   await StorageService.instance.init();
+  
+  // Initialize Supabase if credentials are available
+  await _initializeSupabase();
+  
   runApp(const WikipediaRacerApp());
+}
+
+Future<void> _initializeSupabase() async {
+  try {
+    // Get or generate device ID
+    String? deviceId = await StorageService.instance.getDeviceId();
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await StorageService.instance.saveDeviceId(deviceId);
+    }
+    
+    // TODO: Add your Supabase credentials here
+    // These should be stored in environment variables or a config file in production
+    const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+    const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+    
+    if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
+      await SupabaseService.instance.initialize(
+        supabaseUrl: supabaseUrl,
+        supabaseAnonKey: supabaseAnonKey,
+        deviceId: deviceId,
+      );
+      debugPrint('Supabase initialized successfully');
+    } else {
+      debugPrint('Supabase credentials not provided - running in offline mode');
+    }
+  } catch (e) {
+    debugPrint('Failed to initialize Supabase: $e');
+  }
 }
 
 class WikipediaRacerApp extends StatefulWidget {

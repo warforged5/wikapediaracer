@@ -14,6 +14,7 @@ class StorageService {
   static const String _currentPlayerKey = 'current_player';
   static const String _customListsKey = 'custom_lists';
   static const String _playersKey = 'players';
+  static const String _deviceIdKey = 'device_id';
 
   static StorageService? _instance;
   static StorageService get instance => _instance ??= StorageService._();
@@ -241,6 +242,17 @@ class StorageService {
   Future<void> removeData(String key) async {
     await init();
     await _prefs?.remove(key);
+  }
+
+  // Device ID Methods
+  Future<String?> getDeviceId() async {
+    await init();
+    return _prefs?.getString(_deviceIdKey);
+  }
+
+  Future<void> saveDeviceId(String deviceId) async {
+    await init();
+    await _prefs?.setString(_deviceIdKey, deviceId);
   }
 
   // Custom List Methods

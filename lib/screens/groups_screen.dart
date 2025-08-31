@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:morphable_shape/morphable_shape.dart';
 import '../models/group.dart';
+import '../models/sync_group.dart';
+import '../models/sync_player.dart';
 import '../services/storage_service.dart';
+import '../services/supabase_service.dart';
 import 'group_detail_screen.dart';
 import 'create_group_screen.dart';
 
@@ -16,11 +20,19 @@ class GroupsScreen extends StatefulWidget {
 class _GroupsScreenState extends State<GroupsScreen> {
   List<Group> _groups = [];
   bool _isLoading = true;
+  bool _isSupabaseAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    _checkSupabase();
     _loadGroups();
+  }
+
+  Future<void> _checkSupabase() async {
+    setState(() {
+      _isSupabaseAvailable = SupabaseService.instance.isInitialized;
+    });
   }
 
   Future<void> _loadGroups() async {
@@ -82,12 +94,204 @@ class _GroupsScreenState extends State<GroupsScreen> {
     }
   }
 
+  Future<void> _joinGroup() async {
+    if (!_isSupabaseAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Online groups not available - check Supabase configuration')),
+      );
+      return;
+    }
+
+    final groupCodeController = TextEditingController();
+    final playerNameController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Join Online Group'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: groupCodeController,
+              decoration: const InputDecoration(
+                labelText: 'Group Code',
+                hintText: 'Enter 6-character code',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.characters,
+              maxLength: 6,
+              onChanged: (value) {
+                groupCodeController.text = value.toUpperCase();
+                groupCodeController.selection = TextSelection.fromPosition(
+                  TextPosition(offset: groupCodeController.text.length),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: playerNameController,
+              decoration: const InputDecoration(
+                labelText: 'Your Name',
+                hintText: 'Enter your player name',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Join Group'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && groupCodeController.text.length == 6 && playerNameController.text.isNotEmpty) {
+      try {
+        // Join the group
+        final syncGroup = await SupabaseService.instance.joinGroup(
+          groupCode: groupCodeController.text,
+        );
+
+        if (syncGroup == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Group not found - check the code and try again')),
+            );
+          }
+          return;
+        }
+
+        // Add player to the group
+        await SupabaseService.instance.addPlayerToGroup(
+          groupId: syncGroup.id,
+          playerName: playerNameController.text,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Successfully joined "${syncGroup.name}"!')),
+          );
+          
+          // Navigate to group detail (you'll need to create a sync group detail screen)
+          _showSyncGroupInfo(syncGroup);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to join group: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  void _showSyncGroupInfo(SyncGroup syncGroup) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.cloud, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 8),
+            Text('Joined ${syncGroup.name}'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You\'ve successfully joined the online group!',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Group Code: ${syncGroup.groupCode}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Share this code with friends to invite them!',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Features available:',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            ...[ 
+              'Real-time synchronized races',
+              'Shared group statistics',
+              'Live race history',
+              'Group leaderboards',
+            ].map((feature) => Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(feature, style: Theme.of(context).textTheme.bodySmall)),
+                ],
+              ),
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Copy group code to clipboard
+              Clipboard.setData(ClipboardData(text: syncGroup.groupCode));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Group code copied to clipboard!')),
+              );
+            },
+            child: const Text('Copy Code'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Groups'),
         actions: [
+          if (_isSupabaseAvailable)
+            IconButton(
+              icon: const Icon(Icons.login),
+              tooltip: 'Join Online Group',
+              onPressed: _joinGroup,
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadGroups,
@@ -149,7 +353,9 @@ class _GroupsScreenState extends State<GroupsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Create your first group to start tracking races and compete with friends!',
+              _isSupabaseAvailable 
+                ? 'Create your first local group or join an online group with friends!'
+                : 'Create your first group to start tracking races and compete with friends!',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -157,27 +363,46 @@ class _GroupsScreenState extends State<GroupsScreen> {
               ),
             ),
             const SizedBox(height: 48),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton.icon(
-                onPressed: () async {
-                  final result = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateGroupScreen(),
+            Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreateGroupScreen(),
+                        ),
+                      );
+                      if (result == true) {
+                        _loadGroups();
+                      }
+                    },
+                    icon: const Icon(Icons.add, size: 24),
+                    label: const Text(
+                      'Create Local Group',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
-                  );
-                  if (result == true) {
-                    _loadGroups();
-                  }
-                },
-                icon: const Icon(Icons.add, size: 24),
-                label: const Text(
-                  'Create Your First Group',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
+                if (_isSupabaseAvailable) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: _joinGroup,
+                      icon: const Icon(Icons.login, size: 24),
+                      label: const Text(
+                        'Join Online Group',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
