@@ -15,6 +15,7 @@ class StorageService {
   static const String _customListsKey = 'custom_lists';
   static const String _playersKey = 'players';
   static const String _deviceIdKey = 'device_id';
+  static const String _joinedSyncGroupsKey = 'joined_sync_groups';
 
   static StorageService? _instance;
   static StorageService get instance => _instance ??= StorageService._();
@@ -253,6 +254,36 @@ class StorageService {
   Future<void> saveDeviceId(String deviceId) async {
     await init();
     await _prefs?.setString(_deviceIdKey, deviceId);
+  }
+
+  // Joined Sync Groups Methods
+  Future<List<String>> getJoinedSyncGroupIds() async {
+    await init();
+    final groupsJson = _prefs?.getString(_joinedSyncGroupsKey);
+    if (groupsJson == null) return [];
+    
+    final List<dynamic> groupsList = jsonDecode(groupsJson);
+    return groupsList.cast<String>();
+  }
+
+  Future<void> addJoinedSyncGroup(String groupId) async {
+    final joinedGroups = await getJoinedSyncGroupIds();
+    if (!joinedGroups.contains(groupId)) {
+      joinedGroups.add(groupId);
+      await _saveJoinedSyncGroups(joinedGroups);
+    }
+  }
+
+  Future<void> removeJoinedSyncGroup(String groupId) async {
+    final joinedGroups = await getJoinedSyncGroupIds();
+    joinedGroups.remove(groupId);
+    await _saveJoinedSyncGroups(joinedGroups);
+  }
+
+  Future<void> _saveJoinedSyncGroups(List<String> groupIds) async {
+    await init();
+    final groupsJson = jsonEncode(groupIds);
+    await _prefs?.setString(_joinedSyncGroupsKey, groupsJson);
   }
 
   // Custom List Methods

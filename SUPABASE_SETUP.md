@@ -12,7 +12,126 @@ The synchronization system allows users to:
 
 ## Database Schema
 
-### 1. `sync_groups` Table
+### 0. User Authentication (Built-in Supabase Auth)
+
+Supabase provides built-in authentication. Enable the following providers in your Supabase dashboard:
+- **Email/Password**: For traditional account creation
+- **Anonymous Sign-in**: For temporary accounts that can be upgraded
+- **OAuth providers** (optional): Google, Apple, etc.
+
+### 1. `user_profiles` Table
+
+Stores extended user profile information and links local data to accounts.
+
+```sql
+CREATE TABLE user_profiles (
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+    email TEXT,
+    display_name TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    device_id TEXT, -- Links to local storage before account creation
+    local_data_migrated BOOLEAN DEFAULT FALSE,
+    preferences JSONB DEFAULT '{}', -- User preferences (themes, settings)
+    
+    -- Statistics
+    total_wins INTEGER DEFAULT 0,
+    total_losses INTEGER DEFAULT 0,
+    total_races INTEGER DEFAULT 0,
+    
+    CONSTRAINT user_profiles_display_name_check CHECK (LENGTH(display_name) >= 1)
+);
+
+-- Enable RLS
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Users can only access their own profile
+CREATE POLICY "Users can view own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Indexes
+CREATE INDEX idx_user_profiles_device_id ON user_profiles(device_id);
+CREATE INDEX idx_user_profiles_email ON user_profiles(email);
+```
+
+### 2. `user_local_groups` Table
+
+Stores local groups owned by user accounts for cloud backup.
+
+```sql
+CREATE TABLE user_local_groups (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    group_data JSONB NOT NULL, -- Complete local group data
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(user_id, id)
+);
+
+-- Enable RLS
+ALTER TABLE user_local_groups ENABLE ROW LEVEL SECURITY;
+
+-- Users can only access their own local groups
+CREATE POLICY "Users can manage own local groups" ON user_local_groups FOR ALL USING (auth.uid() = user_id);
+
+-- Indexes
+CREATE INDEX idx_user_local_groups_user_id ON user_local_groups(user_id);
+```
+
+### 3. `user_achievements` Table
+
+Stores user achievements with cloud sync.
+
+```sql
+CREATE TABLE user_achievements (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    achievement_id TEXT NOT NULL,
+    unlocked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    progress_data JSONB DEFAULT '{}',
+    
+    UNIQUE(user_id, achievement_id)
+);
+
+-- Enable RLS
+ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
+
+-- Users can only access their own achievements
+CREATE POLICY "Users can manage own achievements" ON user_achievements FOR ALL USING (auth.uid() = user_id);
+
+-- Indexes
+CREATE INDEX idx_user_achievements_user_id ON user_achievements(user_id);
+CREATE INDEX idx_user_achievements_achievement_id ON user_achievements(achievement_id);
+```
+
+### 4. `user_custom_lists` Table
+
+Stores user custom lists with cloud sync.
+
+```sql
+CREATE TABLE user_custom_lists (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    list_data JSONB NOT NULL, -- Complete custom list data
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(user_id, id)
+);
+
+-- Enable RLS
+ALTER TABLE user_custom_lists ENABLE ROW LEVEL SECURITY;
+
+-- Users can only access their own custom lists
+CREATE POLICY "Users can manage own custom lists" ON user_custom_lists FOR ALL USING (auth.uid() = user_id);
+
+-- Indexes
+CREATE INDEX idx_user_custom_lists_user_id ON user_custom_lists(user_id);
+```
+
+### 5. `sync_groups` Table
 
 Stores online group information with shareable codes.
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
 import 'screens/home_screen.dart';
 import 'services/storage_service.dart';
@@ -12,6 +13,13 @@ void main() async {
   
   // Preserve splash screen until app is ready
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  
+  // Load environment variables
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('No .env file found, using environment variables');
+  }
   
   await StorageService.instance.init();
   
@@ -30,10 +38,11 @@ Future<void> _initializeSupabase() async {
       await StorageService.instance.saveDeviceId(deviceId);
     }
     
-    // TODO: Add your Supabase credentials here
-    // These should be stored in environment variables or a config file in production
-    const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-    const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+    // Get Supabase credentials from .env file or environment variables
+    final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? 
+                       const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? 
+                           const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
     
     if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
       await SupabaseService.instance.initialize(

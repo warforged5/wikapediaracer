@@ -8,6 +8,7 @@ import '../models/sync_player.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import 'group_detail_screen.dart';
+import 'sync_group_detail_screen.dart';
 import 'create_group_screen.dart';
 
 class GroupsScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class GroupsScreen extends StatefulWidget {
 
 class _GroupsScreenState extends State<GroupsScreen> {
   List<Group> _groups = [];
+  List<SyncGroup> _syncGroups = [];
   bool _isLoading = true;
   bool _isSupabaseAvailable = false;
 
@@ -39,8 +41,26 @@ class _GroupsScreenState extends State<GroupsScreen> {
     setState(() => _isLoading = true);
     try {
       final groups = await StorageService.instance.getGroups();
+      List<SyncGroup> syncGroups = [];
+      
+      // Load sync groups if Supabase is available
+      if (_isSupabaseAvailable) {
+        try {
+          final joinedGroupIds = await StorageService.instance.getJoinedSyncGroupIds();
+          for (final groupId in joinedGroupIds) {
+            final syncGroup = await SupabaseService.instance.getGroup(groupId);
+            if (syncGroup != null) {
+              syncGroups.add(syncGroup);
+            }
+          }
+        } catch (e) {
+          debugPrint('Error loading sync groups: $e');
+        }
+      }
+      
       setState(() {
         _groups = groups;
+        _syncGroups = syncGroups;
         _isLoading = false;
       });
     } catch (e) {
@@ -175,13 +195,24 @@ class _GroupsScreenState extends State<GroupsScreen> {
           playerName: playerNameController.text,
         );
 
+        // Save the group locally
+        await StorageService.instance.addJoinedSyncGroup(syncGroup.id);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Successfully joined "${syncGroup.name}"!')),
           );
           
-          // Navigate to group detail (you'll need to create a sync group detail screen)
-          _showSyncGroupInfo(syncGroup);
+          // Reload groups to show the new sync group
+          _loadGroups();
+          
+          // Navigate to the group detail screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SyncGroupDetailScreen(group: syncGroup),
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
@@ -300,7 +331,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _groups.isEmpty
+          : _groups.isEmpty && _syncGroups.isEmpty
               ? _buildEmptyState()
               : _buildGroupsList(),
       floatingActionButton: animatedAddButton(
@@ -411,205 +442,435 @@ class _GroupsScreenState extends State<GroupsScreen> {
   }
 
   Widget _buildGroupsList() {
+    final totalGroups = _groups.length + _syncGroups.length;
+    
     return RefreshIndicator(
       onRefresh: _loadGroups,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _groups.length,
+        itemCount: totalGroups,
         itemBuilder: (context, index) {
-          final group = _groups[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-                  width: 1,
-                ),
+          // Show sync groups first, then local groups
+          if (index < _syncGroups.length) {
+            final syncGroup = _syncGroups[index];
+            return _buildSyncGroupCard(syncGroup);
+          } else {
+            final localIndex = index - _syncGroups.length;
+            final group = _groups[localIndex];
+            return _buildLocalGroupCard(group);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildSyncGroupCard(SyncGroup syncGroup) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: InkWell(
+          onTap: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SyncGroupDetailScreen(group: syncGroup),
               ),
-              child: InkWell(
-                onTap: () async {
-                  final result = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GroupDetailScreen(group: group),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).colorScheme.primary,
+                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.cloud,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
-                  );
-                  if (result == true) {
-                    _loadGroups();
-                  }
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.group,
-                              color: Colors.white,
-                              size: 28,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  syncGroup.name,
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.sync,
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'ONLINE',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onPrimary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.vpn_key,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  syncGroup.groupCode,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  Clipboard.setData(ClipboardData(text: syncGroup.groupCode));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Group code ${syncGroup.groupCode} copied!'),
+                                      duration: const Duration(seconds: 2),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  Icons.copy,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                if (syncGroup.totalRaces > 0) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.emoji_events,
+                          size: 20,
+                          color: Color(0xFFFFD700),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${syncGroup.totalRaces} synchronized races',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocalGroupCard(Group group) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: () async {
+            final result = await Navigator.push<bool>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GroupDetailScreen(group: group),
+              ),
+            );
+            if (result == true) {
+              _loadGroups();
+            }
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondary,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.group,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
                                   group.name,
                                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.people,
-                                      size: 16,
-                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${group.players.length} players',
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                                      ),
-                                    ),
-                                  ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuButton(
-                            icon: Icon(
-                              Icons.more_vert,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                                    const SizedBox(width: 8),
-                                    const Text('Delete Group'),
-                                  ],
+                                child: Text(
+                                  'LOCAL',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSecondary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ),
                             ],
-                            onSelected: (value) {
-                              if (value == 'delete') {
-                                _deleteGroup(group);
-                              }
-                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${group.players.length} players',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      
-                      if (group.totalRaces > 0) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                              width: 1,
-                            ),
-                          ),
+                    ),
+                    PopupMenuButton(
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'delete',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.emoji_events,
-                                size: 20,
-                                color: const Color(0xFFFFD700),
-                              ),
+                              Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
                               const SizedBox(width: 8),
-                              Text(
-                                '${group.totalRaces} races completed',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                              const Text('Delete Group'),
                             ],
                           ),
                         ),
                       ],
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Player avatars
-                      if (group.players.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            ...group.players.take(5).map((player) => Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                child: Text(
-                                  player.name.substring(0, 1).toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            )),
-                            if (group.players.length > 5)
-                              Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                child: CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                  child: Text(
-                                    '+${group.players.length - 5}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _deleteGroup(group);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                
+                if (group.totalRaces > 0) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.emoji_events,
+                          size: 20,
+                          color: Color(0xFFFFD700),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${group.totalRaces} races completed',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ],
+                    ),
+                  ),
+                ],
+                
+                const SizedBox(width: 16),
+                
+                // Player avatars
+                if (group.players.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      ...group.players.take(5).map((player) => Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                          child: Text(
+                            player.name.substring(0, 1).toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                      )),
+                      if (group.players.length > 5)
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                            child: Text(
+                              '+${group.players.length - 5}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                ),
-              ),
+                ],
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
+
 }
 
 class animatedAddButton extends StatefulWidget {

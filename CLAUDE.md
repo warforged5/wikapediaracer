@@ -4,6 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
+### Environment Setup
+```bash
+# Create .env file for Supabase configuration (optional)
+# Copy .env.example to .env and add your Supabase credentials
+cp .env.example .env
+```
+
+### Code Generation
+```bash
+# Generate JSON serialization code for models
+flutter packages pub run build_runner build --delete-conflicting-outputs
+
+# Watch for changes and auto-generate
+flutter packages pub run build_runner watch --delete-conflicting-outputs
+```
+
 ### Running the app
 ```bash
 flutter run
@@ -87,6 +103,8 @@ Core dependencies include:
 - `morphable_shape`: Advanced UI animations
 - `flutter_native_splash`: Native splash screen
 - `file_picker`: File selection for data import/export
+- `supabase_flutter`: Real-time database for synchronized multiplayer groups
+- `flutter_dotenv`: Environment variable management for Supabase credentials
 
 ### Code Quality
 - Uses `flutter_lints` package with strict linting rules
@@ -101,11 +119,14 @@ Core dependencies include:
 - **Multiple Game Modes**: Quick races, group competitions, and tournaments
 - **Player Management**: Create and manage player profiles with persistent storage
 - **Profile Integration**: Use saved profiles in quick races and custom lists
-- **Group System**: Create groups and compete with friends
+- **Local Group System**: Create local groups and compete with friends
+- **Online Synchronized Groups**: Real-time multiplayer groups with shareable codes (Supabase)
+- **Group Code System**: Join groups instantly with 6-character codes, no account required
 - **Tournament System**: Bracket-style tournaments with multiple rounds
 - **Achievement System**: Unlock achievements based on racing performance
-- **History Tracking**: Complete race history and statistics
+- **History Tracking**: Complete race history and statistics (local and cloud)
 - **Data Management**: Export/import all app data for backup and sharing
+- **Real-time Synchronization**: Live updates for multiplayer group stats and race results
 
 ### UI/UX Features
 - **Responsive Design**: Adapts to all screen sizes from mobile to desktop
@@ -115,6 +136,12 @@ Core dependencies include:
 - **Cross-Platform**: Native feel on all supported platforms
 
 ### Recent Improvements
+- **Real-time Multiplayer Groups**: Supabase integration for synchronized online racing
+- **Group Code System**: 6-character codes for instant group joining without accounts
+- **Live Synchronization**: Real-time updates of group stats, race results, and leaderboards
+- **Cross-platform Racing**: Seamless multiplayer racing across mobile, web, and desktop
+- **Enhanced Race Results Screen**: Removed top bar, expanded standings and round breakdown
+- **Environment Configuration**: `.env` file support for secure Supabase credentials
 - **Enhanced Race Path Display**: Horizontal layout with icons, labels, and descriptions
 - **Responsive Countdown Screen**: Simplified design that adapts to all screen sizes
 - **Improved Racing Interface**: Better visual hierarchy and user experience
@@ -124,6 +151,33 @@ Core dependencies include:
 - **Custom List Management**: Copy functionality and profile integration
 - **Quick Race Enhancement**: Dialog-based profile selection for streamlined setup
 - **Performance**: Optimized for smooth operation across all platforms
+
+## Supabase Integration
+
+### Setup and Configuration
+- **Database Schema**: Complete setup instructions in `SUPABASE_SETUP.md`
+- **Environment Variables**: Configure via `.env` file or system environment variables
+- **Optional Integration**: App works in offline mode without Supabase configuration
+- **Real-time Features**: Live subscriptions for group synchronization
+
+### Online Group Features
+- **Group Code System**: 6-character codes for easy group sharing
+- **No Account Required**: Users join with just a name and group code
+- **Device Tracking**: Links local players to synchronized groups via device ID
+- **Cross-platform Sync**: Data consistency across all platforms
+- **Real-time Updates**: Live synchronization of group stats and race results
+
+### Data Models
+- `SyncGroup`: Online groups with shareable codes and metadata
+- `SyncPlayer`: Players in synchronized groups with statistics
+- `SyncActiveRace`: Live race tracking and status management
+- Database tables handle race results, rounds, and detailed race history
+
+### Service Architecture
+- `SupabaseService`: Handles all database operations and real-time subscriptions
+- Graceful fallback when Supabase is unavailable
+- Error handling and connection monitoring
+- Device ID management for player association
 
 ## Player Profile Management
 
@@ -180,4 +234,4 @@ Core dependencies include:
 - Test edge cases and error conditions
 
 ## Project Status
-This is a complete, production-ready Wikipedia racing application with comprehensive features, responsive design, and cross-platform support.
+This is a complete, production-ready Wikipedia racing application with comprehensive features, responsive design, cross-platform support, and optional real-time multiplayer capabilities via Supabase integration. The app supports both offline local groups and online synchronized groups, making it suitable for various use cases from casual local play to serious competitive racing with remote friends.

@@ -25,10 +25,13 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - **Enhanced race path display** with page descriptions and copy functionality
 
 ### 👥 Group Management
-- **Create and manage racing groups** for organized competitions
+- **Local Groups** - Create and manage racing groups for organized competitions
+- **Online Synchronized Groups** - Real-time multiplayer groups with shareable codes
+- **Group Code System** - Join groups instantly using 6-character codes (no account required)
 - **Track win/loss statistics** for each group member
 - **Race history** with detailed round breakdowns
 - **Export race data** for sharing results
+- **Real-time synchronization** of all group stats and race results
 
 ### 🏆 Tournament System
 - **Multiple tournament formats**: Single Elimination, Double Elimination, Round Robin, Swiss
@@ -74,6 +77,7 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
 - Flutter SDK (>=3.0.0)
 - Dart SDK (>=3.0.0)
 - An internet connection (for Wikipedia API access)
+- **Optional**: Supabase account (for online synchronized groups)
 
 ### Installation
 
@@ -88,7 +92,16 @@ Wikipedia racing is a popular online game where players start on one Wikipedia p
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Optional: Configure Supabase for Online Groups**
+   - Create a Supabase project at [supabase.com](https://supabase.com)
+   - Run the SQL setup from `SUPABASE_SETUP.md`
+   - Create a `.env` file with your credentials:
+   ```env
+   SUPABASE_URL=https://your-project-id.supabase.co
+   SUPABASE_ANON_KEY=your_anon_key_here
+   ```
+
+4. **Run the app**
    ```bash
    # For web
    flutter run -d chrome
@@ -132,10 +145,20 @@ flutter build windows --release  # or macos/linux
 9. **Multiple rounds** determine the overall winner
 
 ### 👥 Group Mode
-1. **Create a Group** for organized competitions with friends
+
+#### Local Groups
+1. **Create a Local Group** for organized competitions with friends
 2. **Add players** and track statistics over time
 3. **Start group races** with your established roster
 4. **Export results** and view detailed race history
+
+#### Online Synchronized Groups (with Supabase)
+1. **Create Online Group** - Generates a shareable 6-character group code
+2. **Share Group Code** - Friends join instantly without creating accounts
+3. **Real-time Sync** - All players see live updates of group stats, race results, and history
+4. **Join Existing Group** - Use the "Join Online Group" button and enter a group code
+5. **Cross-platform Racing** - Race together across mobile, web, and desktop
+6. **Persistent Statistics** - Group stats and race history are saved in the cloud
 
 ### 🏆 Tournament Mode
 1. **Create Tournament** with custom name and format
@@ -189,10 +212,12 @@ lib/
 - **Flutter**: Cross-platform UI framework
 - **Material 3**: Google's latest design system
 - **Wikipedia API**: Real-time page data and suggestions
+- **Supabase**: Real-time database for synchronized multiplayer racing
 - **SharedPreferences**: Local data persistence
 - **HTTP**: API communication
 - **JSON Serialization**: Data modeling and persistence
 - **Share Plus**: Native sharing capabilities
+- **Real-time Subscriptions**: Live updates for multiplayer groups
 
 ### Development Commands
 
@@ -236,12 +261,22 @@ The app includes 10 carefully crafted themes:
 
 ## 🌐 API Usage
 
+### Wikipedia API
 This app uses the Wikipedia API to:
 - Fetch random page suggestions
 - Validate custom page entries
 - Get page extracts for previews
 
 **Rate Limiting**: The app implements respectful API usage with appropriate delays and caching.
+
+### Supabase Integration
+When configured, the app uses Supabase for:
+- **Real-time Database**: Synchronized group data and race results
+- **Live Subscriptions**: Real-time updates for multiplayer races
+- **Group Code System**: Secure group sharing without accounts
+- **Cross-platform Sync**: Consistent data across all devices
+
+**Privacy**: No personal accounts required - users join groups with just a name and group code.
 
 ## 📱 Responsive Design
 
@@ -297,6 +332,12 @@ Having issues? Here are some resources:
 - [ ] **AI opponents** for single-player practice
 
 ### Recently Added ✅
+- [x] **Real-time Multiplayer Groups** - Supabase-powered synchronized racing with shareable group codes
+- [x] **No-Account Group Joining** - Join online groups instantly with just a name and 6-character code
+- [x] **Live Race Synchronization** - Real-time updates of group stats, race results, and leaderboards
+- [x] **Cross-platform Group Racing** - Race together across mobile, web, and desktop platforms
+- [x] **Persistent Cloud Storage** - Group data and race history saved in Supabase database
+- [x] **Enhanced Race Results Screen** - Removed top bar, expanded final standings and round breakdown
 - [x] **Custom Lists Feature** - create, save, and manage curated Wikipedia page collections
 - [x] **Animated UI Components** - morphing buttons with squircle-to-circle transitions and elastic bounces
 - [x] **Interactive Page Cards** - staggered entrance animations with hover effects and tap feedback
