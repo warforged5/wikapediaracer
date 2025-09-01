@@ -5,7 +5,10 @@ import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'theme_selector_screen.dart';
 import 'tournament_screen.dart';
+import 'account_setup_screen.dart';
 import '../themes/app_theme.dart';
+import '../services/auth_service.dart';
+import '../models/user_profile.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(AppThemeData) onThemeChanged;
@@ -18,10 +21,55 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isThemeButtonHovered = false;
+  UserProfile? _userProfile;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadUserProfile();
+  }
+
+  void _loadUserProfile() async {
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.instance.initialize();
+      _userProfile = AuthService.instance.currentProfile;
+    } catch (e) {
+      print('Error loading user profile: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showAccountSetup() async {
+    final result = await Navigator.push<UserProfile>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AccountSetupScreen(),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _userProfile = result;
+      });
+    }
+  }
+
+  void _signOut() async {
+    await AuthService.instance.signOut();
+    setState(() {
+      _userProfile = null;
+    });
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Signed out successfully')),
+      );
+    }
   }
 
   @override
@@ -53,6 +101,116 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         actions: [
+          // Account button
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (_userProfile != null)
+            PopupMenuButton<String>(
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  enabled: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _userProfile!.displayName,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_userProfile!.email != null)
+                        Text(
+                          _userProfile!.email!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                if (AuthService.instance.isAnonymous)
+                  const PopupMenuItem(
+                    value: 'upgrade',
+                    child: Row(
+                      children: [
+                        Icon(Icons.upgrade),
+                        SizedBox(width: 8),
+                        Text('Upgrade Account'),
+                      ],
+                    ),
+                  ),
+                const PopupMenuItem(
+                  value: 'signout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout),
+                      SizedBox(width: 8),
+                      Text('Sign Out'),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'signout') {
+                  _signOut();
+                } else if (value == 'upgrade') {
+                  _showAccountSetup();
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Text(
+                        _userProfile!.displayName.substring(0, 1).toUpperCase(),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: FilledButton.icon(
+                onPressed: _showAccountSetup,
+                icon: const Icon(Icons.person_add, size: 18),
+                label: const Text('Sign In'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+            ),
+          
+          // Theme button
           Container(
             margin: const EdgeInsets.only(right: 8),
             child: MouseRegion(
@@ -184,6 +342,56 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
+                    
+                    // Account promotion for web layout
+                    if (!_isLoading && _userProfile == null) ...[
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.cloud_sync,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Sync Across Devices',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Create an account to save your progress and access it from any device.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            FilledButton.icon(
+                              onPressed: _showAccountSetup,
+                              icon: const Icon(Icons.person_add, size: 18),
+                              label: const Text('Get Started'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -352,6 +560,65 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+        
+        // Account promotion for non-signed users
+        if (!_isLoading && _userProfile == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primaryContainer,
+                    Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.cloud_sync,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Save Your Progress',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create an account to sync your groups, achievements, and race history across all devices!',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _showAccountSetup,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    child: const Text('Create Account'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         
         // Action buttons
         Expanded(
