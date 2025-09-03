@@ -269,6 +269,27 @@ class SupabaseService {
         .eq('id', raceId);
   }
 
+  /// Convert a local group to an online synchronized group
+  Future<SyncGroup> convertLocalGroupToOnline({
+    required String localGroupName,
+    required List<Player> localPlayers,
+  }) async {
+    if (!_initialized) throw Exception('Supabase service not initialized');
+    
+    // Create the synchronized group
+    final syncGroup = await createGroup(name: localGroupName);
+    
+    // Add all local players to the synchronized group
+    for (final player in localPlayers) {
+      await addPlayerToGroup(
+        groupId: syncGroup.id,
+        playerName: player.name,
+      );
+    }
+    
+    return syncGroup;
+  }
+
   /// Complete active race and save results
   Future<void> completeRace({
     required String raceId,

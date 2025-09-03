@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/group.dart';
 import '../models/player.dart';
 import '../models/race_result.dart';
+import '../models/sync_group.dart';
 import '../services/storage_service.dart';
+import '../services/supabase_service.dart';
 import 'group_race_setup_screen.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -19,6 +22,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
   Group _group = Group(name: '');
   List<RaceResult> _raceHistory = [];
   bool _isLoading = true;
+  SyncGroup? _convertedSyncGroup;
 
   @override
   void initState() {
@@ -91,9 +95,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
     if (result != null) {
       // Check for duplicates
       if (_group.players.any((p) => p.name.toLowerCase() == result.toLowerCase())) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Player with this name already exists')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Player with this name already exists')),
+          );
+        }
         return;
       }
 
@@ -144,9 +150,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
       try {
         final updatedGroup = _group.removePlayer(player.id);
         await StorageService.instance.saveGroup(updatedGroup);
-        _loadData();
-        
         if (mounted) {
+          _loadData();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Removed player "${player.name}"')),
           );
@@ -178,14 +183,230 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
     }
   }
 
+  Future<void> _convertToOnlineGroup() async {
+    if (!SupabaseService.instance.isInitialized) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Online groups are not available. Check Supabase configuration.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Convert to Online Group'),
+        content: const Text(
+          'This will create an online version of your group with a shareable code. '
+          'Your local group will remain unchanged. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Convert'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // Show loading
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Creating online group...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    try {
+      // Convert the group
+      final syncGroup = await SupabaseService.instance.convertLocalGroupToOnline(
+        localGroupName: _group.name,
+        localPlayers: _group.players,
+      );
+
+      if (mounted) {
+        setState(() {
+          _convertedSyncGroup = syncGroup;
+        });
+
+        // Close loading dialog
+        Navigator.pop(context);
+
+        // Show success dialog with group code
+        _showGroupCodeDialog(syncGroup.groupCode);
+      }
+    } catch (e) {
+      if (mounted) {
+        // Close loading dialog
+        Navigator.pop(context);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error converting group: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showGroupCodeDialog(String groupCode) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.celebration,
+              color: Colors.green,
+            ),
+            const SizedBox(width: 8),
+            const Text('Group Created!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Your online group has been created successfully!',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Group Code',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    groupCode,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: groupCode));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Group code copied to clipboard!')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.copy, size: 18),
+                    label: const Text('Copy Code'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Share this code with friends so they can join your group!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_group.name),
+        title: Row(
+          children: [
+            Expanded(child: Text(_group.name)),
+            if (_convertedSyncGroup != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.cloud, size: 16, color: Colors.green),
+                    const SizedBox(width: 4),
+                    Text(
+                      'ONLINE',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
         actions: [
           PopupMenuButton(
             itemBuilder: (context) => [
+              if (_convertedSyncGroup == null && SupabaseService.instance.isInitialized)
+                const PopupMenuItem(
+                  value: 'convert',
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_upload, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text('Convert to Online'),
+                    ],
+                  ),
+                ),
+              if (_convertedSyncGroup != null)
+                PopupMenuItem(
+                  value: 'show_code',
+                  child: Row(
+                    children: [
+                      Icon(Icons.code, color: Colors.green),
+                      SizedBox(width: 8),
+                      Text('Show Group Code'),
+                    ],
+                  ),
+                ),
               const PopupMenuItem(
                 value: 'export',
                 child: Row(
@@ -198,8 +419,18 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
               ),
             ],
             onSelected: (value) {
-              if (value == 'export') {
-                _exportGroupData();
+              switch (value) {
+                case 'convert':
+                  _convertToOnlineGroup();
+                  break;
+                case 'show_code':
+                  if (_convertedSyncGroup != null) {
+                    _showGroupCodeDialog(_convertedSyncGroup!.groupCode);
+                  }
+                  break;
+                case 'export':
+                  _exportGroupData();
+                  break;
               }
             },
           ),
@@ -225,6 +456,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
+          final navigator = Navigator.of(context);
           final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
@@ -233,7 +465,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
           );
           if (result == true) {
             _loadData();
-            Navigator.pop(context, true);
+            if (mounted) {
+              navigator.pop(true);
+            }
           }
         },
         icon: const Icon(Icons.play_arrow),
@@ -386,6 +620,80 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
                           : 'Never'),
                   ],
                 ),
+                if (_convertedSyncGroup != null) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.cloud, color: Colors.green, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Online Group Code',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: _convertedSyncGroup!.groupCode));
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Group code copied!')),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _convertedSyncGroup!.groupCode,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 2,
+                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.copy,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap to copy • Share with friends to join!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
