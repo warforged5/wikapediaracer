@@ -7,6 +7,7 @@ import '../models/sync_group.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import 'group_race_setup_screen.dart';
+import 'sync_group_detail_screen.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final Group group;
@@ -243,16 +244,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
         localPlayers: _group.players,
       );
 
-      if (mounted) {
-        setState(() {
-          _convertedSyncGroup = syncGroup;
-        });
+      // Save the sync group to joined groups so it persists
+      await StorageService.instance.addJoinedSyncGroup(syncGroup.id);
 
+      if (mounted) {
         // Close loading dialog
         Navigator.pop(context);
 
-        // Show success dialog with group code
-        _showGroupCodeDialog(syncGroup.groupCode);
+        // Show success dialog with group code and navigate option
+        _showGroupCodeDialog(syncGroup.groupCode, syncGroup);
       }
     } catch (e) {
       if (mounted) {
@@ -269,7 +269,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
     }
   }
 
-  void _showGroupCodeDialog(String groupCode) {
+  void _showGroupCodeDialog(String groupCode, [SyncGroup? syncGroup]) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -340,9 +340,24 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
           ],
         ),
         actions: [
-          FilledButton(
+          TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+            child: const Text('Stay Here'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              if (syncGroup != null) {
+                // Navigate to sync group detail screen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SyncGroupDetailScreen(group: syncGroup),
+                  ),
+                );
+              }
+            },
+            child: const Text('Go to Online Group'),
           ),
         ],
       ),
@@ -425,7 +440,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with TickerProvid
                   break;
                 case 'show_code':
                   if (_convertedSyncGroup != null) {
-                    _showGroupCodeDialog(_convertedSyncGroup!.groupCode);
+                    _showGroupCodeDialog(_convertedSyncGroup!.groupCode, _convertedSyncGroup);
                   }
                   break;
                 case 'export':
