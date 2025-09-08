@@ -331,6 +331,9 @@ Having issues? Here are some resources:
 - [ ] **Tournament live streaming** and spectator mode
 - [ ] **AI opponents** for single-player practice
 
+### In Progress
+- [ ] **Accounts** - saving your data to supabase
+
 ### Recently Added ✅
 - [x] **Real-time Multiplayer Groups** - Supabase-powered synchronized racing with shareable group codes
 - [x] **No-Account Group Joining** - Join online groups instantly with just a name and 6-character code
