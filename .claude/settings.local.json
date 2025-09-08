@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Read(/C:\\Users\\fourn\\Flutter Apps\\Wikapedia\\wikapediaracer/**)",
+      "Read(/C:\\Users\\fourn\\Flutter Apps\\Wikapedia\\wikapediaracer/**)",
+      "Read(/C:\\Users\\fourn\\Flutter Apps\\Wikapedia\\wikapediaracer\\lib/**)"
     ],
     "deny": [],
     "ask": []
