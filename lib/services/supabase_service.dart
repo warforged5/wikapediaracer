@@ -145,6 +145,38 @@ class SupabaseService {
     return SyncPlayer.fromJson(response);
   }
 
+  /// Manually add a player to a synchronized group (without device association)
+  Future<SyncPlayer> addPlayerToGroupManually({
+    required String groupId,
+    required String playerName,
+  }) async {
+    if (!_initialized) throw Exception('Supabase service not initialized');
+    
+    // Check if player already exists in group
+    final existing = await _client
+        .from('sync_players')
+        .select()
+        .eq('group_id', groupId)
+        .eq('name', playerName)
+        .maybeSingle();
+        
+    if (existing != null) {
+      throw Exception('Player "$playerName" already exists in this group');
+    }
+
+    final response = await _client
+        .from('sync_players')
+        .insert({
+          'group_id': groupId,
+          'name': playerName,
+          'device_id': null, // No device association for manually added players
+        })
+        .select()
+        .single();
+
+    return SyncPlayer.fromJson(response);
+  }
+
   /// Get all players in a group
   Future<List<SyncPlayer>> getGroupPlayers(String groupId) async {
     if (!_initialized) throw Exception('Supabase service not initialized');

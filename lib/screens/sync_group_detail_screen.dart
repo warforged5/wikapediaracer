@@ -236,6 +236,52 @@ Total races: ${widget.group.totalRaces}''';
     ]);
   }
 
+  Future<void> _addPlayerManually() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => const _AddPlayerDialog(),
+    );
+
+    if (result != null && result.trim().isNotEmpty) {
+      try {
+        await SupabaseService.instance.addPlayerToGroupManually(
+          groupId: widget.group.id,
+          playerName: result.trim(),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Added "$result" to the group!'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Failed to add player: $e')),
+                ],
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -292,11 +338,26 @@ Total races: ${widget.group.totalRaces}''';
                 _buildHistoryTab(),
               ],
             ),
-      floatingActionButton: _players.length >= 2 ? FloatingActionButton.extended(
-        onPressed: _startRace,
-        icon: const Icon(Icons.play_arrow),
-        label: const Text('Start Race'),
-      ) : null,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'add_player',
+            onPressed: _addPlayerManually,
+            child: const Icon(Icons.person_add),
+            tooltip: 'Add Player',
+          ),
+          if (_players.length >= 2) ...[
+            const SizedBox(height: 8),
+            FloatingActionButton.extended(
+              heroTag: 'start_race',
+              onPressed: _startRace,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Start Race'),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -453,6 +514,7 @@ Total races: ${widget.group.totalRaces}''';
                         itemBuilder: (context, index) {
                           final player = _players[index];
                           final isCurrentDevice = player.deviceId == SupabaseService.instance.deviceId;
+                          final isManuallyAdded = player.deviceId == null;
                           
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -465,7 +527,9 @@ Total races: ${widget.group.totalRaces}''';
                                 leading: CircleAvatar(
                                   backgroundColor: isCurrentDevice
                                       ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context).colorScheme.secondary,
+                                      : isManuallyAdded
+                                          ? Theme.of(context).colorScheme.outline
+                                          : Theme.of(context).colorScheme.secondary,
                                   child: Text(
                                     player.name.substring(0, 1).toUpperCase(),
                                     style: const TextStyle(
@@ -476,10 +540,12 @@ Total races: ${widget.group.totalRaces}''';
                                 ),
                                 title: Row(
                                   children: [
-                                    Text(
-                                      player.name,
-                                      style: TextStyle(
-                                        fontWeight: isCurrentDevice ? FontWeight.bold : null,
+                                    Expanded(
+                                      child: Text(
+                                        player.name,
+                                        style: TextStyle(
+                                          fontWeight: isCurrentDevice ? FontWeight.bold : null,
+                                        ),
                                       ),
                                     ),
                                     if (isCurrentDevice) ...[
@@ -496,6 +562,36 @@ Total races: ${widget.group.totalRaces}''';
                                             color: Theme.of(context).colorScheme.onPrimary,
                                             fontWeight: FontWeight.w600,
                                           ),
+                                        ),
+                                      ),
+                                    ] else if (isManuallyAdded) ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.person_add_alt_1,
+                                        size: 16,
+                                        color: Theme.of(context).colorScheme.outline,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Manual',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.outline,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ] else ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.devices,
+                                        size: 16,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Online',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
@@ -877,6 +973,98 @@ class _RaceSetupDialogState extends State<_RaceSetupDialog> {
                 }
               : null,
           child: const Text('Start Race'),
+        ),
+      ],
+    );
+  }
+}
+
+// Add Player Dialog
+class _AddPlayerDialog extends StatefulWidget {
+  const _AddPlayerDialog();
+  
+  @override
+  State<_AddPlayerDialog> createState() => _AddPlayerDialogState();
+}
+
+class _AddPlayerDialogState extends State<_AddPlayerDialog> {
+  final _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(
+            Icons.person_add,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          const Text('Add Player'),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add a new player to this group manually. They can join later with the group code to take control of their profile.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _controller,
+              decoration: InputDecoration(
+                labelText: 'Player Name',
+                hintText: 'Enter player name',
+                prefixIcon: const Icon(Icons.person),
+                border: const OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a player name';
+                }
+                if (value.trim().length < 2) {
+                  return 'Name must be at least 2 characters';
+                }
+                if (value.trim().length > 30) {
+                  return 'Name must be less than 30 characters';
+                }
+                return null;
+              },
+              onFieldSubmitted: (_) {
+                if (_formKey.currentState?.validate() == true) {
+                  Navigator.pop(context, _controller.text.trim());
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_formKey.currentState?.validate() == true) {
+              Navigator.pop(context, _controller.text.trim());
+            }
+          },
+          child: const Text('Add Player'),
         ),
       ],
     );
