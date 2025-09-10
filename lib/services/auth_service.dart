@@ -191,11 +191,30 @@ class AuthService {
       'local_data_migrated': false, // Will be set to true after migration
     };
 
-    final response = await _client
-        .from('user_profiles')
-        .insert(profileData)
-        .select()
-        .single();
+    // Retry logic to handle RLS timing issues
+    dynamic response;
+    int retries = 0;
+    const maxRetries = 3;
+    
+    while (retries < maxRetries) {
+      try {
+        response = await _client
+            .from('user_profiles')
+            .insert(profileData)
+            .select()
+            .single();
+        break; // Success, exit retry loop
+      } catch (e) {
+        retries++;
+        if (retries >= maxRetries) {
+          throw Exception('Failed to create user profile after $maxRetries attempts: $e');
+        }
+        
+        // Wait a bit before retrying (exponential backoff)
+        await Future.delayed(Duration(milliseconds: 500 * retries));
+        print('Retrying user profile creation (attempt $retries): $e');
+      }
+    }
 
     final profile = UserProfile.fromJson(response);
     _currentProfile = profile;
