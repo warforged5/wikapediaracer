@@ -1359,34 +1359,45 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildMobileRacePath() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isVeryCompact = screenHeight < 500;
+    final isCompact = screenHeight < 600;
+    
     return Column(
       children: [
         Expanded(
           child: _buildCleanRacePathCard(_startPage!, isStart: true),
         ),
         Container(
-          margin: const EdgeInsets.symmetric(vertical: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: EdgeInsets.symmetric(vertical: isVeryCompact ? 8 : (isCompact ? 12 : 16)),
+          padding: EdgeInsets.symmetric(
+            horizontal: isVeryCompact ? 12 : 16, 
+            vertical: isVeryCompact ? 4 : 8
+          ),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(isVeryCompact ? 16 : 20),
           ),
-          child: Column(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.keyboard_arrow_down_rounded,
-                size: 20,
+                size: isVeryCompact ? 16 : 20,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Navigate',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
+              if (!isVeryCompact) ...[
+                const SizedBox(width: 4),
+                Text(
+                  'Navigate',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: isCompact ? 12 : null,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -1591,12 +1602,21 @@ class _RaceScreenState extends State<RaceScreen> {
     final isSmallScreen = screenWidth > 600 && screenWidth <= 800;
     final isMobile = screenWidth <= 600;
     final isCompact = screenHeight < 600;
+    final isVeryCompact = screenHeight < 500;
+    
+    // Determine if we should show page details based on screen space
+    final shouldShowDetails = !isVeryCompact && (
+      (isLargeScreen) ||
+      (isMediumScreen && screenHeight > 700) ||
+      (isSmallScreen && screenHeight > 600) ||
+      (isMobile && screenHeight > 550)
+    );
     
     // Dynamic sizing based on screen size
-    final cardPadding = isLargeScreen ? 20.0 : isMediumScreen ? 16.0 : isSmallScreen ? 14.0 : 12.0;
-    final iconSize = isLargeScreen ? 32.0 : isMediumScreen ? 28.0 : isSmallScreen ? 24.0 : 20.0;
-    final titleFontSize = isLargeScreen ? 16.0 : isMediumScreen ? 15.0 : isSmallScreen ? 14.0 : 13.0;
-    final labelFontSize = isLargeScreen ? 11.0 : isMediumScreen ? 10.0 : 9.0;
+    final cardPadding = isLargeScreen ? 20.0 : isMediumScreen ? 16.0 : isSmallScreen ? 12.0 : (isVeryCompact ? 8.0 : 10.0);
+    final iconSize = isLargeScreen ? 32.0 : isMediumScreen ? 28.0 : isSmallScreen ? 24.0 : (isVeryCompact ? 16.0 : 18.0);
+    final titleFontSize = isLargeScreen ? 16.0 : isMediumScreen ? 15.0 : isSmallScreen ? 14.0 : (isVeryCompact ? 12.0 : 13.0);
+    final labelFontSize = isLargeScreen ? 11.0 : isMediumScreen ? 10.0 : (isVeryCompact ? 8.0 : 9.0);
     final descriptionFontSize = isLargeScreen ? 13.0 : isMediumScreen ? 12.0 : isSmallScreen ? 11.0 : 10.0;
     
     final primaryColor = isStart 
@@ -1622,10 +1642,10 @@ class _RaceScreenState extends State<RaceScreen> {
               children: [
                 // Icon
                 Container(
-                  padding: EdgeInsets.all(isMobile ? 10 : 12),
+                  padding: EdgeInsets.all(isVeryCompact ? 6 : (isMobile ? 8 : 10)),
                   decoration: BoxDecoration(
                     color: containerColor,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(isVeryCompact ? 12 : 16),
                   ),
                   child: Icon(
                     isStart ? Icons.play_arrow_rounded : Icons.flag_rounded,
@@ -1634,17 +1654,17 @@ class _RaceScreenState extends State<RaceScreen> {
                   ),
                 ),
                 
-                SizedBox(height: isMobile ? 6 : 8),
+                SizedBox(height: isVeryCompact ? 4 : (isMobile ? 6 : 8)),
                 
                 // Label
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 8 : 10, 
-                    vertical: isMobile ? 4 : 6
+                    horizontal: isVeryCompact ? 6 : (isMobile ? 8 : 10), 
+                    vertical: isVeryCompact ? 2 : (isMobile ? 4 : 6)
                   ),
                   decoration: BoxDecoration(
                     color: primaryColor,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(isVeryCompact ? 6 : 8),
                   ),
                   child: Text(
                     isStart ? 'START' : 'TARGET',
@@ -1652,14 +1672,14 @@ class _RaceScreenState extends State<RaceScreen> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: labelFontSize,
-                      letterSpacing: 0.5,
+                      letterSpacing: isVeryCompact ? 0.3 : 0.5,
                     ),
                   ),
                 ),
               ],
             ),
             
-            SizedBox(width: isMobile ? 12 : 16),
+            SizedBox(width: isVeryCompact ? 8 : (isMobile ? 10 : 12)),
             
             // Right side - Page content
             Expanded(
@@ -1678,36 +1698,36 @@ class _RaceScreenState extends State<RaceScreen> {
                             fontWeight: FontWeight.w600,
                             fontSize: titleFontSize,
                             color: Theme.of(context).colorScheme.onSurface,
-                            height: 1.3,
+                            height: isVeryCompact ? 1.2 : 1.3,
                           ),
-                          maxLines: isCompact ? 2 : 3,
+                          maxLines: isVeryCompact ? 1 : (isCompact ? 2 : 3),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: isVeryCompact ? 4 : 8),
                       IconButton(
                         onPressed: () => _copyPageName(page.title, isStart ? 'Start' : 'Target'),
                         icon: const Icon(Icons.copy_rounded),
-                        iconSize: isMobile ? 16 : 18,
-                        padding: const EdgeInsets.all(4),
+                        iconSize: isVeryCompact ? 14 : (isMobile ? 16 : 18),
+                        padding: EdgeInsets.all(isVeryCompact ? 2 : 4),
                         constraints: BoxConstraints(
-                          minWidth: isMobile ? 24 : 28,
-                          minHeight: isMobile ? 24 : 28,
+                          minWidth: isVeryCompact ? 20 : (isMobile ? 24 : 28),
+                          minHeight: isVeryCompact ? 20 : (isMobile ? 24 : 28),
                         ),
                         tooltip: 'Copy ${isStart ? "start" : "target"} page name',
                       ),
                     ],
                   ),
                   
-                  // Page description (if available)
-                  if (page.extract != null && page.extract!.isNotEmpty) ...[
-                    SizedBox(height: isMobile ? 6 : 8),
+                  // Page description (if available and screen has enough space)
+                  if (shouldShowDetails && page.extract != null && page.extract!.isNotEmpty) ...[
+                    SizedBox(height: isVeryCompact ? 4 : (isMobile ? 6 : 8)),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(isMobile ? 10 : 12),
+                      padding: EdgeInsets.all(isVeryCompact ? 6 : (isMobile ? 8 : 10)),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(isVeryCompact ? 6 : 8),
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                           width: 1,
@@ -1718,9 +1738,9 @@ class _RaceScreenState extends State<RaceScreen> {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontSize: descriptionFontSize,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          height: 1.4,
+                          height: isVeryCompact ? 1.2 : 1.4,
                         ),
-                        maxLines: isCompact ? 2 : (isMobile ? 3 : 4),
+                        maxLines: isVeryCompact ? 1 : (isCompact ? 2 : (isMobile ? 2 : 3)),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -1842,6 +1862,10 @@ class _RaceScreenState extends State<RaceScreen> {
   }
 
   Widget _buildMobileLayout() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isVeryCompact = screenHeight < 500;
+    final isCompact = screenHeight < 600;
+    
     return Column(
       children: [
         // Race Path Section
@@ -1850,7 +1874,7 @@ class _RaceScreenState extends State<RaceScreen> {
           child: Card(
             elevation: 2,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isVeryCompact ? 8 : (isCompact ? 12 : 16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1859,9 +1883,10 @@ class _RaceScreenState extends State<RaceScreen> {
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: isVeryCompact ? 18 : (isCompact ? 20 : null),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isVeryCompact ? 8 : (isCompact ? 12 : 16)),
                   Expanded(
                     child: _buildMobileRacePath(),
                   ),
@@ -1871,7 +1896,7 @@ class _RaceScreenState extends State<RaceScreen> {
           ),
         ),
         
-        const SizedBox(height: 16),
+        SizedBox(height: isVeryCompact ? 8 : (isCompact ? 12 : 16)),
         
         // Player Selection Section
         Expanded(
@@ -1879,7 +1904,7 @@ class _RaceScreenState extends State<RaceScreen> {
           child: Card(
             elevation: 2,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isVeryCompact ? 8 : (isCompact ? 12 : 16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1888,17 +1913,18 @@ class _RaceScreenState extends State<RaceScreen> {
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: isVeryCompact ? 16 : (isCompact ? 18 : null),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isVeryCompact ? 8 : (isCompact ? 12 : 16)),
                   Expanded(
                     child: GridView.builder(
                       padding: EdgeInsets.zero,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 2.5,
+                        crossAxisSpacing: isVeryCompact ? 8 : 12,
+                        mainAxisSpacing: isVeryCompact ? 8 : 12,
+                        childAspectRatio: isVeryCompact ? 3.0 : 2.5,
                       ),
                       itemCount: widget.players.length,
                       itemBuilder: (context, index) {
