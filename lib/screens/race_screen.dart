@@ -983,7 +983,17 @@ class _RaceScreenState extends State<RaceScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 
-                                animatedAddButton(onPressed:  () => _handleCustomPageInput(_customPageController.text))
+                                FilledButton(
+                                  onPressed: () => _handleCustomPageInput(_customPageController.text),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                  ),
+                                  child: const Icon(Icons.add_rounded, color: Colors.white),
+                                )
                               ],
                             ),
                           ],

@@ -108,6 +108,62 @@ class _WikipediaRacerAppState extends State<WikipediaRacerApp> {
       debugShowCheckedModeBanner: false,
       theme: _currentTheme!.themeData,
       home: HomeScreen(onThemeChanged: _onThemeChanged),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: _getTextScaler(context),
+          ),
+          child: child!,
+        );
+      },
     );
+  }
+
+  TextScaler _getTextScaler(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
+    
+    // Base scale factor on the shortest side of the screen
+    // This ensures consistent scaling across different orientations
+    double scaleFactor;
+    
+    if (shortestSide < 320) {
+      // Very small phones (iPhone SE 1st gen, etc.)
+      scaleFactor = 0.8;
+    } else if (shortestSide < 375) {
+      // Small phones (iPhone SE 2nd/3rd gen, etc.)
+      scaleFactor = 0.9;
+    } else if (shortestSide < 414) {
+      // Standard phones (iPhone 12/13/14, etc.)
+      scaleFactor = 1.0;
+    } else if (shortestSide < 500) {
+      // Large phones (iPhone Pro Max, etc.)
+      scaleFactor = 1.05;
+    } else if (shortestSide < 768) {
+      // Small tablets
+      scaleFactor = 1.1;
+    } else if (shortestSide < 1024) {
+      // Large tablets
+      scaleFactor = 1.15;
+    } else {
+      // Desktop screens
+      scaleFactor = 1.2;
+    }
+    
+    // Additional adjustment for very tall/short screens
+    final aspectRatio = screenWidth / screenHeight;
+    if (aspectRatio > 2.0) {
+      // Very wide screens (landscape tablets, etc.)
+      scaleFactor *= 0.95;
+    } else if (aspectRatio < 0.5) {
+      // Very tall screens
+      scaleFactor *= 0.95;
+    }
+    
+    // Clamp the scale factor to reasonable bounds
+    scaleFactor = scaleFactor.clamp(0.75, 1.3);
+    
+    return TextScaler.linear(scaleFactor);
   }
 }
