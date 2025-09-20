@@ -528,224 +528,251 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    return Column(
-      children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-          child: Column(
-            children: [
-              Icon(
-                Icons.speed,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Wikipedia Racer',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Race through Wikipedia pages with friends',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenHeight < 600;
+    final isVeryCompact = screenHeight < 500;
+    
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: isVeryCompact ? 16 : (isCompact ? 20 : 24),
         ),
-        
-        // Account promotion for non-signed users
-        if (!_isLoading && _userProfile == null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primaryContainer,
-                    Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            // Header - Responsive sizing
+            Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: isVeryCompact ? 20 : (isCompact ? 32 : 48),
+                horizontal: 4,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.cloud_sync,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Save Your Progress',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.speed,
+                    size: isVeryCompact ? 48 : (isCompact ? 56 : 64),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: isVeryCompact ? 16 : (isCompact ? 20 : 24)),
                   Text(
-                    'Create an account to sync your groups, achievements, and race history across all devices!',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
+                    'Wikipedia Racer',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: isVeryCompact ? 28 : (isCompact ? 30 : null),
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _showAccountSetup,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  SizedBox(height: isVeryCompact ? 8 : 12),
+                  Text(
+                    'Race through Wikipedia pages with friends',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontSize: isVeryCompact ? 14 : (isCompact ? 15 : null),
                     ),
-                    child: const Text('Create Account'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-          ),
-        
-        // Action buttons
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 20),
-                _buildActionCard(
-                  context,
-                  icon: Icons.flash_on,
-                  title: 'Quick Race',
-                  subtitle: 'Start racing immediately',
-                  color: Theme.of(context).colorScheme.primary,
-                  isPrimary: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const QuickRaceSetupScreen(),
-                      ),
-                    );
-                  },
+            
+            // Account promotion for non-signed users - Responsive
+            if (!_isLoading && _userProfile == null)
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(bottom: isVeryCompact ? 16 : (isCompact ? 20 : 24)),
+                padding: EdgeInsets.all(isVeryCompact ? 16 : 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primaryContainer,
+                      Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 20),
-                _buildActionCard(
-                  context,
-                  icon: Icons.group,
-                  title: 'Groups',
-                  subtitle: 'Manage your racing groups',
-                  color: Theme.of(context).colorScheme.secondary,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GroupsScreen(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.cloud_sync,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          size: isVeryCompact ? 20 : 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Save Your Progress',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              fontSize: isVeryCompact ? 14 : (isCompact ? 15 : null),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: isVeryCompact ? 6 : 8),
+                    Text(
+                      'Create an account to sync your groups, achievements, and race history across all devices!',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
+                        fontSize: isVeryCompact ? 12 : (isCompact ? 13 : null),
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                _buildPillActionButton(
-                  context,
-                  icon: Icons.history,
-                  title: 'History',
-                  color: Theme.of(context).colorScheme.tertiary,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HistoryScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                _buildActionCard(
-                  context,
-                  icon: Icons.emoji_events,
-                  title: 'Tournaments',
-                  subtitle: 'Compete in structured competitions',
-                  color: Theme.of(context).colorScheme.secondary,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TournamentScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                _buildPillActionButton(
-                  context,
-                  icon: Icons.military_tech,
-                  title: 'Achievements',
-                  color: Theme.of(context).colorScheme.error,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AchievementsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                _buildActionCard(
-                  context,
-                  icon: Icons.palette,
-                  title: 'Themes',
-                  
-                  subtitle: 'Customize your experience',
-                  color: Theme.of(context).colorScheme.tertiary,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ThemeSelectorScreen(
-                          onThemeChanged: widget.onThemeChanged,
+                    ),
+                    SizedBox(height: isVeryCompact ? 12 : 16),
+                    FilledButton(
+                      onPressed: _showAccountSetup,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isVeryCompact ? 16 : 20,
+                          vertical: isVeryCompact ? 8 : 12,
                         ),
                       ),
-                    );
-                  },
+                      child: Text(
+                        'Create Account',
+                        style: TextStyle(fontSize: isVeryCompact ? 13 : null),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 40),
-                ],
+              ),
+            
+            // Action buttons - Responsive spacing
+            _buildActionCard(
+              context,
+              icon: Icons.flash_on,
+              title: 'Quick Race',
+              subtitle: 'Start racing immediately',
+              color: Theme.of(context).colorScheme.primary,
+              isPrimary: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const QuickRaceSetupScreen(),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: isVeryCompact ? 12 : (isCompact ? 16 : 20)),
+            
+            _buildActionCard(
+              context,
+              icon: Icons.group,
+              title: 'Groups',
+              subtitle: 'Manage your racing groups',
+              color: Theme.of(context).colorScheme.secondary,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GroupsScreen(),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: isVeryCompact ? 12 : (isCompact ? 16 : 20)),
+            
+            _buildPillActionButton(
+              context,
+              icon: Icons.history,
+              title: 'History',
+              color: Theme.of(context).colorScheme.tertiary,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: isVeryCompact ? 12 : (isCompact ? 16 : 20)),
+            
+            _buildActionCard(
+              context,
+              icon: Icons.emoji_events,
+              title: 'Tournaments',
+              subtitle: 'Compete in structured competitions',
+              color: Theme.of(context).colorScheme.secondary,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TournamentScreen(),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: isVeryCompact ? 12 : (isCompact ? 16 : 20)),
+            
+            _buildPillActionButton(
+              context,
+              icon: Icons.military_tech,
+              title: 'Achievements',
+              color: Theme.of(context).colorScheme.error,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AchievementsScreen(),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: isVeryCompact ? 12 : (isCompact ? 16 : 20)),
+            
+            _buildActionCard(
+              context,
+              icon: Icons.palette,
+              title: 'Themes',
+              subtitle: 'Customize your experience',
+              color: Theme.of(context).colorScheme.tertiary,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ThemeSelectorScreen(
+                      onThemeChanged: widget.onThemeChanged,
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            // Bottom info with responsive spacing
+            Padding(
+              padding: EdgeInsets.only(
+                top: isVeryCompact ? 24 : (isCompact ? 32 : 40),
+                bottom: isVeryCompact ? 16 : (isCompact ? 20 : 24),
+                left: 4,
+                right: 4,
+              ),
+              child: Text(
+                'Create groups to track wins and losses, or jump into a quick race!',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  fontSize: isVeryCompact ? 12 : (isCompact ? 13 : null),
+                ),
               ),
             ),
-          ),
+          ],
         ),
-        
-        // Bottom info
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            'Create groups to track wins and losses, or jump into a quick race!',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
